@@ -1,0 +1,52 @@
+/* Contenedor general de tarjetas: en formato de grid */
+.donation-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  padding: 16px 0;
+}
+
+/* Tarjeta individual */
+.pedido-card {
+  background-color: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+  cursor: pointer;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: left;
+  height: 100%;
+}
+
+/* Efecto al pasar el cursor */
+.pedido-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Encabezado de la tarjeta */
+.pedido-header {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+/* Contenido desplegable de la tarjeta */
+.pedido-detalle {
+  margin-top: 10px;
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+/* Botón de acción */
+.pedido-detalle button {
+  margin-top: 12px;
+  width: 100%;
+  font-size: 0.95rem;
+}

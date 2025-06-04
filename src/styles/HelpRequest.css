@@ -1,0 +1,58 @@
+.donation-page {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+.help-title {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    color: #1f2937;
+    text-align: center;
+}
+
+
+.sections {
+    display: flex;
+    flex-direction: column;
+    /* Ya lo tienes si lo cambiaste antes */
+    gap: 30px;
+    /* Aumenta el espacio entre secciones */
+    padding: 0 20px;
+    /* Espacio lateral para evitar cortes */
+}
+
+.section {
+    background-color: #f5f5f5;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 24px rgba(255, 208, 0, 0.8);    overflow: visible;
+    /* Asegura que el contenido (como sombra) no se recorte */
+}
+.section h2 {
+    color: #555;
+}
+
+.submit-btn {
+    background-color: #3498db;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 15px;
+    display: block;
+    width: 200px;
+    height: 50px;
+}
+
+.submit-btn:hover {
+    background-color: #2980b9;
+}
+
+.donation-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}

@@ -1,0 +1,174 @@
+.donors {
+    padding: 40px;
+    min-height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.donors-title {
+    text-align: center;
+        margin-bottom: 30px;
+        color: #1f2937;
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 2rem;
+}
+
+.donors-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.search-bar {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.search-bar input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    height: 38px;
+}
+
+.search-bar button {
+    padding: 8px 16px;
+    background-color: #007bff;
+    border: none;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    height: 38px;
+    /* Igual altura al input */
+    display: flex;
+    align-items: center;
+}
+
+.search-bar button:hover {
+    background-color: #0056b3;
+}
+
+.search-bar .btn-add-donor {
+    all: unset;
+    /* limpia conflictos */
+    background-color: #28a745;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.search-bar .btn-add-donor:hover {
+    background-color: #218838;
+}
+
+.donors-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background-color: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    font-size: 0.95rem;
+}
+
+.donors-table th {
+    background-color: #ffefa7;
+    color: #111827;
+    font-weight: 600;
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.donors-table td {
+    padding: 1rem;
+    color: #4b5563;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.donors-table tr:nth-child(even) {
+    background-color: #fff8d7;
+}
+
+.donors-table tr:hover {
+    background-color: #eef2ff;
+    cursor: pointer;
+}
+
+.donors-table td:last-child,
+.donors-table th:last-child {
+    border-right: none;
+}
+
+.donors-table td:first-child,
+.donors-table th:first-child {
+    border-left: none;
+}
+.btn-edit,
+.btn-delete {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    margin-right: 8px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.btn-edit {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.btn-edit:hover {
+    background-color: #e0a800;
+}
+
+.btn-delete {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-delete:hover {
+    background-color: #c82333;
+}
+
+/* Modal personalizado */
+.modal-form {
+    background: white;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    margin: auto;
+    border-radius: 10px;
+    outline: none;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1001;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.15);
+}
+
+.modal-overlay {
+    background-color: rgba(0, 0, 0, 0.6);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+}

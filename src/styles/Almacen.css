@@ -1,0 +1,190 @@
+.almacen {
+    padding: 2rem;
+    font-family: 'Arial', sans-serif;
+}
+
+.almacen h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #1f2937;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.accordion-title {
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.accordion-content {
+    margin-left: 1rem;
+}
+
+.card.border-primary {
+    border-width: 2px !important;
+}
+
+.container {
+    padding: 2rem;
+}
+
+h1 {
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 1.5rem;
+}
+
+/* Filtros */
+.form-label {
+    font-weight: 600;
+    color: #444;
+}
+
+select.form-select {
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    padding: 8px;
+}
+
+/* Tarjetas de almacenes */
+.card {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.card-text {
+    font-size: 14px;
+    color: #666;
+}
+
+/* Botones dentro de la tarjeta */
+.card .btn {
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-weight: 500;
+}
+
+/* Tabla */
+/* Tablas estilizadas como users-table */
+.almacen table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background-color: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    font-size: 0.95rem;
+    margin-top: 20px;
+}
+
+.almacen th {
+    background-color: #ffefa7;
+    color: #111827;
+    font-weight: 600;
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.almacen td {
+    padding: 1rem;
+    color: #4b5563;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.almacen tr:nth-child(even) {
+    background-color: #fff8d7;
+}
+
+.almacen tr:hover {
+    background-color: #eef2ff;
+    cursor: pointer;
+}
+/* PDF Button */
+.btn-outline-primary {
+    font-weight: 500;
+    border-radius: 6px;
+    padding: 10px 20px;
+    transition: 0.2s ease-in-out;
+}
+
+.btn-outline-primary:hover {
+    background-color: #2980b9;
+    color: white;
+}
+
+.almacen-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 1050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.almacen-modal-content {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    padding: 32px;
+    width: 100%;
+    max-width: 310px;
+    z-index: 1060;
+
+}
+
+.almacen-modal-content h2 {
+    font-size: 24px;
+    margin-bottom: 16px;
+}
+
+.almacen-modal-footer {
+    display: flex;
+    justify-content: flex-start;
+    /* ✅ Esto alinea a la izquierda */
+    gap: 10px;
+}
+
+.almacen-btn-confirmar {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: #fff;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-weight: 500;
+}
+
+.almacen-btn-confirmar:hover {
+    background-color: #1e7e34;
+    border-color: #1e7e34;
+}
+
+.almacen-btn-secundary {
+    background-color: red;
+    border-color: red;
+    color: #fff;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-weight: 500;
+}
+
+.almacen-btn-secundary:hover {
+    background-color: #72151e;
+    border-color: #72151e;
+}

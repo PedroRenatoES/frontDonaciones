@@ -1,0 +1,66 @@
+/* Contenedor principal */
+.donation-history {
+    padding: 40px;
+    min-height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
+    /* un fondo clarito */
+}
+
+/* Títulos principales y secciones */
+.donation-history h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #1f2937;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.donation-history section {
+    margin-bottom: 3rem;
+}
+
+/* Subtítulos */
+.donation-history section h2 {
+    color: #1f2937;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #ffda35;
+    padding-bottom: 0.3rem;
+}
+
+/* Tablas estilizadas como users-table */
+.donation-history table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background-color: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    font-size: 0.95rem;
+    margin-top: 20px;
+}
+
+.donation-history th {
+    background-color: #ffefa7;
+    color: #111827;
+    font-weight: 600;
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.donation-history td {
+    padding: 1rem;
+    color: #4b5563;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.donation-history tr:nth-child(even) {
+    background-color: #fff8d7;
+}
+
+.donation-history tr:hover {
+    background-color: #eef2ff;
+    cursor: pointer;
+}

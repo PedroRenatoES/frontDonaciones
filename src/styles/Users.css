@@ -1,0 +1,275 @@
+/* Página de Usuarios */
+.users {
+    padding: 40px;
+    min-height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.users h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #1f2937;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.users-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.user-filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.user-filters select {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    height: 38px;
+    width: 100%;
+    max-width: 200px
+}
+
+/* Botón Añadir */
+.btn-add-user {
+    background-color: #28a745;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    height: 38px;
+    border: none;
+}
+
+.btn-add-user:hover {
+    background-color: #218838;
+}
+
+/* Botón Reset */
+.btn-reset {
+    background-color: #ff9800;
+    color: white;
+    padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        margin-right: 8px;
+        font-size: 13px;
+        cursor: pointer;
+}
+
+.btn-reset:hover {
+    background-color: #9e6002;
+}
+
+/* Tabla de usuarios */
+.users-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background-color: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    font-size: 0.95rem;
+    margin-top: 20px;
+}
+
+.users-table th {
+    background-color: #ffefa7;
+    color: #111827;
+    font-weight: 600;
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.users-table td {
+    padding: 1rem;
+    color: #4b5563;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.users-table tr:nth-child(even) {
+    background-color: #fff8d7;
+}
+
+.users-table tr:hover {
+    background-color: #eef2ff;
+    cursor: pointer;
+}
+
+/* Botones de acción */
+.btn-edit,
+.btn-delete {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    margin-right: 8px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.btn-edit {
+    background-color: #218838;
+    color: #000;
+}
+
+.btn-edit:hover {
+    background-color: #054714;
+}
+
+.btn-delete {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-delete:hover {
+    background-color: #5f0811;
+}
+
+/* Modal de Usuario */
+.custom-user-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.custom-modal-content {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+.modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #1f2937;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 30px;
+}
+
+.btn-cancel,
+.btn-save {
+    padding: 10px 20px;
+    margin-left: 10px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.btn-cancel {
+    background-color: #f44336;
+    color: white;
+}
+
+.btn-save {
+    background-color: #4caf50;
+    color: white;
+}
+
+.users-toolbar {
+    margin-bottom: 30px;
+}
+
+.users-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.users-controls input[type="text"] {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    height: 38px;
+    flex: 1;
+    max-width: 400px;
+}
+
+.users-controls select {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    height: 38px;
+    width: 100%;
+    max-width: 200px;
+}
+
+.users-controls button {
+    height: 38px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+}
+
+.users-controls button:not(.btn-add-user) {
+    background-color: #007bff;
+    color: white;
+    margin-right: 100px;
+}
+
+.users-controls button:not(.btn-add-user):hover {
+    background-color: #0056b3;
+}
+
+.btn-add-user {
+    background-color: #28a745;
+    color: white;
+    font-weight: bold;
+}
+
+.btn-add-user:hover {
+    background-color: #218838;
+}

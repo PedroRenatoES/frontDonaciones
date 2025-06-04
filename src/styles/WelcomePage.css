@@ -1,0 +1,275 @@
+/* Contenedor principal */
+.welcome-container {
+    padding: 40px 20px;
+    background: linear-gradient(to right, #fefcea, #f1f1f1);
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Título principal */
+.welcome-container h1 {
+    font-size: 32px;
+    color: #2c3e50;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+/* Info del usuario */
+.welcome-container p {
+    font-size: 16px;
+    color: #444;
+    margin-bottom: 8px;
+}
+
+/* Caja principal con contenido */
+.welcome-content {
+    margin-top: 30px;
+    background-color: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* Mensaje superior */
+.welcome-content>p {
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+/* Contenedor de tarjetas */
+.welcome-cards {
+    display: flex;
+    gap: 20px;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+/* Tarjetas individuales */
+.welcome-card {
+    flex: 1;
+    min-width: 240px;
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+    text-align: center;
+    transition: transform 0.2s ease;
+    border-left: 5px solid #ffd833;
+}
+
+.welcome-card:hover {
+    transform: translateY(-5px);
+}
+
+.welcome-card h3 {
+    margin-top: 0;
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.welcome-card p {
+    font-size: 22px;
+    font-weight: 700;
+    color: #2196f3;
+    margin: 0;
+}
+
+/* Card de bienvenida */
+.welcome-header-card {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+/* Imagen de usuario */
+.welcome-avatar img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid #ffd833;
+    object-fit: cover;
+}
+
+/* Info del usuario */
+.welcome-info h1 {
+    font-size: 28px;
+    color: #2c3e50;
+    font-weight: 700;
+    margin: 0 0 10px;
+}
+
+.welcome-info p {
+    font-size: 16px;
+    color: #444;
+    margin: 4px 0;
+}
+
+/* Responsivo para pantallas pequeñas */
+@media (max-width: 768px) {
+    .welcome-cards {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .welcome-container h1 {
+        font-size: 26px;
+        text-align: center;
+    }
+
+    .welcome-content {
+        padding: 20px;
+    }
+
+   
+
+}
+
+.notificaciones-container {
+    margin-top: 30px;
+    background-color: #ffffff;
+    padding: 25px 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.notificaciones-container h3 {
+    margin-bottom: 20px;
+    font-size: 22px;
+    color: #333;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 10px;
+}
+
+.notificaciones-scroll {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.notificacion-card {
+    background-color: white;
+    border-left: 6px solid #3498db;
+    padding: 15px 20px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s;
+}
+
+.notificacion-card:hover {
+    transform: translateY(-2px);
+}
+
+.notificacion-card p {
+    margin: 0 0 5px;
+    font-size: 1em;
+    color: #444;
+}
+
+.notificacion-card span {
+    font-size: 0.85em;
+    color: #888;
+    display: block;
+}
+
+/* Severidad por color */
+.severidad-baja {
+    border-left-color: #2ecc71;
+}
+
+.severidad-media {
+    border-left-color: #f1c40f;
+}
+
+.severidad-alta {
+    border-left-color: #e74c3c;
+}
+
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+.modal-cambio-password {
+    background-color: #ffffff;
+    padding: 30px 25px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.modal-cambio-password h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 22px;
+    color: #333;
+}
+
+.modal-cambio-password p {
+    margin-bottom: 20px;
+    color: #666;
+    font-size: 15px;
+}
+
+.modal-cambio-password input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-bottom: 15px;
+    font-size: 15px;
+}
+
+.modal-cambio-password .error {
+    color: red;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.modal-cambio-password button {
+    padding: 10px 20px;
+    margin: 10px 5px 0;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.modal-cambio-password button:first-of-type {
+    background-color: #28a745;
+    color: white;
+}
+
+.modal-cambio-password button:first-of-type:hover {
+    background-color: #218838;
+}
+
+.modal-cambio-password .btn-secondary {
+    background-color: #e0e0e0;
+    color: #333;
+}
+
+.modal-cambio-password .btn-secondary:hover {
+    background-color: #c6c6c6;
+}
