@@ -172,3 +172,12 @@
     bottom: 0;
     z-index: 1000;
 }
+.form-control.error {
+    border-color: red;
+}
+
+.error-message {
+    color: red;
+    font-size: 0.8em;
+    margin-top: 4px;
+}

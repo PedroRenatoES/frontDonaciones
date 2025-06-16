@@ -13,6 +13,7 @@ import WelcomePage from './components/WelcomePage';
 import HelpRequest from './components/HelpRequest';
 import Campains from './components/Campains';
 import Almacenes from './components/Almacen';
+import Salidas from './components/Salidas';
 import './App.css';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -79,6 +80,7 @@ function App() {
             <Route path="/campains" element={isLoggedIn ? <Campains /> : <Navigate to="/login" />} />
             <Route path='/almacenes' element={isLoggedIn ? <Almacenes /> : <Navigate to="/login" />} />
             <Route path="/help-request" element={isLoggedIn ? <HelpRequest /> : <Navigate to="/login" />} />
+            <Route path="/salidas" element={isLoggedIn ? <Salidas /> : <Navigate to="/login" />} />
             <Route path="/" element={<Navigate to={isLoggedIn ? "/welcome" : "/login"} />} />
           </Routes>
         </div>

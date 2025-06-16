@@ -202,12 +202,7 @@ function Users() {
           <option value="admin">Administrador</option>
           <option value="operador">Usuario</option>
         </select>
-        <select value={estadoFiltro} onChange={e => setEstadoFiltro(e.target.value)}>
-          <option value="">Estado</option>
-          <option value="activo">Activo</option>
-          <option value="inactivo">Inactivo</option>
-          <option value="all">Todos</option>
-        </select>
+
 
         <button className="btn-add-user" onClick={handleModalOpen}>+ Agregar Usuario</button>
       </div>

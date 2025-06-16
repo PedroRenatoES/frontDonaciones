@@ -1,65 +1,43 @@
 import React, { useState } from 'react';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import '../styles/HelpRequestItem.css';
+import DetallePaquete from './DetallePaquete';
 
 const PackageItem = ({ paquete, donacionesEspecie, catalogoArticulos, onCompletarPaquete }) => {
   const [expandido, setExpandido] = useState(false);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [detallesPaquete, setDetallesPaquete] = useState(null);
 
-  const obtenerNombreArticulo = (idDonacionEspecie) => {
-    const donacion = donacionesEspecie.find(d => d.id_donacion_especie === idDonacionEspecie);
-    if (!donacion) return 'Artículo desconocido';
-
-    const articulo = catalogoArticulos.find(a => a.id_articulo === donacion.id_articulo);
-    return articulo ? articulo.nombre_articulo : 'Artículo no encontrado';
+  const toggleExpandido = () => {
+    const nuevoEstado = !expandido;
+    setExpandido(nuevoEstado);
+    if (nuevoEstado && !detallesPaquete) {
+      cargarDetallesPaquete();
+    }
   };
 
-  const generarPDF = () => {
-    const doc = new jsPDF();
-  
-    doc.setFontSize(18);
-    doc.text(paquete.nombre_paquete, 14, 20);
-  
-    doc.setFontSize(12);
-    doc.text(`Fecha: ${new Date(paquete.fecha_creacion).toLocaleDateString()}`, 14, 30);
-  
-    const tableColumn = ["Artículo", "Cantidad"];
-    const tableRows = [];
-  
-    paquete.donaciones.forEach(don => {
-      tableRows.push([
-        obtenerNombreArticulo(don.id_donacion_especie),
-        don.cantidad_asignada
-      ]);
-    });
-  
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: 40,
-    });
-  
-    const finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY : 40;
-  
-    doc.text('Origen: _______________________________', 14, finalY + 20);
-    doc.text('Destino: _______________________________', 14, finalY + 30);
-
-    const nombres = localStorage.getItem('nombres') || '__________________';
-    const ci = localStorage.getItem('ci') || '__________________';
-  
-    doc.text(`Firma: _______________________________`, 14, finalY + 40);
-    doc.text(`Nombre: ${nombres}`, 14, finalY + 50);
-    doc.text(`CI: ${ci}`, 14, finalY + 60);
-  
-    doc.save(`paquete_${paquete.id_paquete}.pdf`);
-
-    // ✅ Llamar al callback para eliminar el paquete de la lista
-    onCompletarPaquete?.(paquete.id_paquete);
+  const cargarDetallesPaquete = async () => {
+    try {
+      const res = await fetch(`https://backenddonaciones.onrender.com/api/paquetes/${paquete.id_paquete}`);
+      if (!res.ok) throw new Error('Error al obtener detalles del paquete');
+      const data = await res.json();
+      setDetallesPaquete(data);
+    } catch (error) {
+      console.error('Error cargando detalles del paquete:', error);
+    }
   };
-  
+
+  const handleAbrirFormulario = () => {
+    setMostrarFormulario(true);
+  };
+
+  const handleCerrarFormulario = () => {
+    setMostrarFormulario(false);
+    onCompletarPaquete(paquete.id_paquete); // Esto lo elimina de la lista
+  };
+
   return (
     <div className="pedido-card">
-      <div className="pedido-header" onClick={() => setExpandido(!expandido)}>
+      <div className="pedido-header" onClick={toggleExpandido}>
         <strong>{paquete.nombre_paquete}</strong> — {new Date(paquete.fecha_creacion).toLocaleDateString()}
       </div>
 
@@ -69,19 +47,32 @@ const PackageItem = ({ paquete, donacionesEspecie, catalogoArticulos, onCompleta
 
           <p><strong>Donaciones:</strong></p>
           <ul>
-            {paquete.donaciones.map((don, idx) => (
-              <li key={idx}>
-                Artículo: {obtenerNombreArticulo(don.id_donacion_especie)} — Cantidad: {don.cantidad_asignada}
-              </li>
-            ))}
+            {detallesPaquete?.items?.length > 0 ? (
+              detallesPaquete.items.map((item, idx) => (
+                <li key={idx}>
+                  Artículo: {item.nombre_articulo} — Cantidad: {item.cantidad} {item.unidad}
+                </li>
+              ))
+            ) : (
+              <li>No hay artículos en este paquete.</li>
+            )}
           </ul>
 
-          <button
-            className="btn btn-outline-success mt-3"
-            onClick={generarPDF}
-          >
-            Completar Paquete
-          </button>
+          {!mostrarFormulario ? (
+            <button
+              className="btn btn-outline-primary mt-3"
+              onClick={handleAbrirFormulario}
+            >
+              Crear Cargamento
+            </button>
+          ) : (
+          <DetallePaquete
+            paquete={paquete}
+            productos={detallesPaquete.items}
+            volver={handleCerrarFormulario}
+          />
+
+          )}
         </div>
       )}
     </div>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import '../styles/Users.css';
 
 const CustomUserModal = ({
@@ -10,13 +10,47 @@ const CustomUserModal = ({
   onActivate,
   isEditingInactive
 }) => {
+  const [errors, setErrors] = useState({});
+
   if (!isOpen) return null;
+
+  const soloLetras = /^[a-zA-ZÁÉÍÓÚÑáéíóúñ\s]*$/;
+  const soloNumeros = /^\d*$/;
 
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
     }
   };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    let error = '';
+
+    // Validaciones por campo
+    if (['nombres', 'apellido_paterno', 'apellido_materno'].includes(name)) {
+      if (!soloLetras.test(value)) {
+        error = 'Solo letras y espacios permitidos.';
+      }
+    }
+
+    if (['telefono', 'ci'].includes(name)) {
+      if (!soloNumeros.test(value)) {
+        error = 'Solo números permitidos.';
+      }
+    }
+
+    if (name === 'contrasena') {
+      if (value.length < 12) {
+        error = 'La contraseña debe tener al menos 12 caracteres.';
+      }
+    }
+
+    setErrors(prev => ({ ...prev, [name]: error }));
+    onChange(e);
+  };
+
+  const getInputClass = (name) => errors[name] ? 'error-input' : '';
 
   return (
     <div className="custom-user-modal" onClick={handleOverlayClick}>
@@ -43,13 +77,14 @@ const CustomUserModal = ({
               type={type}
               name={name}
               value={userData[name] || ''}
-              onChange={onChange}
+              onChange={handleChange}
               placeholder={label}
+              className={getInputClass(name)}
             />
+            {errors[name] && <small className="error-message">{errors[name]}</small>}
           </div>
         ))}
 
-        {/* Campo nuevo Estado, siempre "inactivo", no editable */}
         <div className="form-group">
           <label>Estado</label>
           <input
@@ -71,7 +106,6 @@ const CustomUserModal = ({
 
         <div className="modal-actions">
           <button className="btn-cancel" onClick={onClose}>Cancelar</button>
-
           {isEditingInactive ? (
             <button className="btn-activate" onClick={onActivate}>Activar Usuario</button>
           ) : (

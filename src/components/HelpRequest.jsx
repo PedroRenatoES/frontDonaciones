@@ -56,7 +56,7 @@ const fetchSolicitudesExternas = async () => {
 
   const fetchPaquetes = async () => {
     try {
-      const res = await fetch('/paquetes/');
+      const res = await fetch('https://backenddonaciones.onrender.com/api/paquetes');
       const data = await res.json();
       setPaquetesProceso(data);
     } catch (err) {
@@ -134,7 +134,7 @@ const fetchSolicitudesExternas = async () => {
         <section className="section">
           <h2>Solicitudes de ayuda Externas</h2>
           <div className="donation-list">
-            {pedidos.map((pedido) => (
+            {Array.isArray(pedidos) && pedidos.map((pedido) => (
               <PedidoItem key={pedido.idDonacion} pedido={pedido} />
             ))}
           </div>

@@ -20,7 +20,9 @@ function Login({ onLogin }) {
         localStorage.setItem('rol', response.data.usuario.rol);
         localStorage.setItem('correo', response.data.usuario.correo);
         localStorage.setItem('nombres', response.data.usuario.nombres);
+        localStorage.setItem('apellidos', response.data.usuario.apellido_paterno + ' ' + response.data.usuario.apellido_materno);
         localStorage.setItem('usuario', JSON.stringify(response.data.usuario));
+        localStorage.setItem('id', response.data.usuario.id);
         localStorage.setItem('cambiarPassword', response.data.cambiarPassword ? 'true' : 'false');
         localStorage.setItem('ci', ci);
         setAnimando(true);

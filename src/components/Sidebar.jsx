@@ -57,6 +57,9 @@ function Sidebar({ onLogout }) {
 <li className="card-option">
   <NavLink to="/help-request"><FontAwesomeIcon icon={faTruck} /> Solicitudes</NavLink>
 </li>
+<li className="card-option">
+  <NavLink to="/salidas"><FontAwesomeIcon icon={faHandsHelping} /> Salidas</NavLink>
+</li>
 
 
   </ul>

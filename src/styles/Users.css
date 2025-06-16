@@ -273,3 +273,13 @@
 .btn-add-user:hover {
     background-color: #218838;
 }
+
+.error-input {
+    border: 1px solid red;
+}
+
+.error-message {
+    color: red;
+    font-size: 0.8em;
+    margin-top: 4px;
+}
