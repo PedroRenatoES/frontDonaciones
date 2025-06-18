@@ -40,58 +40,43 @@ function WelcomePage({ onLogout }) {
       .catch(error => console.error('Error fetching inventario:', error));
   }, []);
 
-  useEffect(() => {
-    const nombreAlmacen = localStorage.getItem('almacen');
-  
-    if (!nombreAlmacen) return;
-  
-    // Paso 1: obtener almacenes
-    axios.get('/almacenes')
-      .then(response => {
-        const almacenes = response.data;
-        const almacen = almacenes.find(a => a.nombre_almacen === nombreAlmacen);
-  
-        if (!almacen) return;
-  
-        const idAlmacen = almacen.id_almacen;
-  
-        // Paso 2: obtener catálogo de artículos
-        axios.get('/catalogo')
-          .then(catalogoRes => {
-            const catalogo = catalogoRes.data;
-  
-            // Paso 3: obtener artículos bajo stock
-            axios.get(`/donaciones-en-especie/bajo-stock/${idAlmacen}`)
-              .then(stockRes => {
-                const bajoStock = stockRes.data;
-  
-                // Paso 4: generar notificaciones con nombre del artículo
-                const notifs = bajoStock.map((item) => {
-                  const articulo = catalogo.find(a => a.id_articulo === item.id_articulo);
-                  const nombreArticulo = articulo ? articulo.nombre_articulo : `Artículo ID ${item.id_articulo}`;
-  
-                  return {
-                    id: item.id_donacion_especie,
-                    titulo: 'Alerta de bajo stock',
-                    descripcion: `${nombreArticulo} tiene bajo stock (Restante: ${item.cantidad_restante}).`,
-                    nivelSeveridad: 'Alta',
-                    fechaCreacion: new Date().toISOString(),
-                  };
-                });
-  
-                setNotificaciones((prev) => {
-                  const idsExistentes = new Set(prev.map(n => n.id));
-                  const nuevas = notifs.filter(n => !idsExistentes.has(n.id));
-                  return [...nuevas, ...prev];
-                });
-              })
-              .catch(err => console.error('Error obteniendo bajo stock:', err));
-          })
-          .catch(err => console.error('Error obteniendo catálogo:', err));
-      })
-      .catch(err => console.error('Error obteniendo almacenes:', err));
-  }, []);
-    
+useEffect(() => {
+  axios.get('https://backenddonaciones.onrender.com/api/inventario/ubicaciones')
+    .then(response => {
+      const inventario = response.data;
+      console.log('Datos de inventario:', inventario); // ✅ Verifica si la API devuelve datos
+
+      // TEMPORAL: filtrar artículos con menos de 200 para pruebas
+      const bajoStock = inventario.filter(item => item.cantidad_total < 20);
+      console.log('Artículos bajo stock:', bajoStock); // ✅ Verifica si hay artículos bajo el umbral
+
+      const notifs = bajoStock.map((item) => {
+        const ubicacion = item.ubicaciones?.[0];
+        const ubicacionTexto = ubicacion
+          ? `Ubicación: ${ubicacion.almacen}, ${ubicacion.estante}, espacio ${ubicacion.espacio}`
+          : 'Ubicación desconocida';
+
+        console.log('Generando notificación para:', item); // ✅ Verifica el mapeo
+
+        return {
+          id: `stock-${item.id_articulo}`,
+          titulo: 'Alerta de bajo stock',
+          descripcion: `${item.nombre_articulo} tiene bajo stock (Total: ${item.cantidad_total}). ${ubicacionTexto}`,
+          nivelSeveridad: 'Alta',
+          fechaCreacion: new Date().toISOString(),
+        };
+      });
+
+      setNotificaciones((prev) => {
+        const idsExistentes = new Set(prev.map(n => n.id));
+        const nuevas = notifs.filter(n => !idsExistentes.has(n.id));
+        const actualizadas = [...nuevas, ...prev];
+        console.log('Notificaciones actualizadas:', actualizadas); // ✅ Confirma el estado final
+        return actualizadas;
+      });
+    })
+    .catch(err => console.error('Error obteniendo inventario:', err));
+}, []);
   // Para manejar notificaciones
   const manejarNuevaNotificacion = (mensaje) => {
     const timestamp = new Date().toISOString();

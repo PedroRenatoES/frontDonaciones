@@ -94,9 +94,8 @@ function DonationHistory() {
       <th>Apellido</th>
       <th>Monto</th>
       <th>Divisa</th>
-      <th>Nombre Cuenta</th>
-      <th>Número Cuenta</th>
-      <th>Comprobante</th>
+      <th>Nombre de Cuenta</th>
+      <th>Número de Cuenta</th>
     </tr>
   </thead>
   <tbody>
@@ -108,23 +107,6 @@ function DonationHistory() {
         <td>{donacion.divisa}</td>
         <td>{donacion.nombre_cuenta}</td>
         <td>{donacion.numero_cuenta}</td>
-        <td>
-          {donacion.comprobante_url ? (
-            <img
-              src={donacion.comprobante_url}
-              alt="Comprobante"
-              style={{
-                width: '100px',
-                height: '60px',
-                objectFit: 'cover',
-                borderRadius: '4px'
-              }}
-            />
-          ) : (
-            'No disponible'
-          )}
-        </td>
-
       </tr>
     ))}
   </tbody>
