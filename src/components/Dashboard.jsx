@@ -169,7 +169,7 @@ return (
     {/* Dinero vs especie */}
     <div className="graph-section">
       <div className="graph-box" style={{ flex: 1 }}>
-        <h4>Donaciones en Dinero por Punto</h4>
+        <h4>Donaciones en Dinero por Punto de Recolección</h4>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={donacionesDineroPorPunto}>
             <XAxis dataKey="nombre_punto" tick={{ fill: '#6b7280', fontSize: 12 }} />
@@ -185,7 +185,7 @@ return (
       </div>
 
       <div className="graph-box" style={{ flex: 1 }}>
-        <h4>Donaciones en Especie por Punto</h4>
+        <h4>Donaciones en Especie por Punto de Recolección</h4>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={donacionesEspeciePorPunto}>
             <XAxis dataKey="nombre_punto" tick={{ fill: '#6b7280', fontSize: 12 }} />

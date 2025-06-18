@@ -1,7 +1,46 @@
-import React from 'react';
-
+import React, { useState } from 'react';
+import axios from '../axios';
 function DonacionDineroForm({ data, setData, nombresCuenta = [], numerosCuenta = [] }) {
-  return (
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+  
+    const formData = new FormData();
+    formData.append('imagen', file); 
+  
+    setUploading(true);
+    setUploadError(null);
+  
+    try {
+      const response = await axios.post(
+        'https://backenddonaciones.onrender.com/api/upload',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+  
+      const { url } = response.data;
+      if (url) {
+        setData({ ...data, comprobante_url: url });
+      } else {
+        throw new Error('Respuesta del servidor sin URL');
+      }
+    } catch (error) {
+      setUploadError(
+        error.response?.data?.message || 'Error al subir el comprobante'
+      );
+    } finally {
+      setUploading(false);
+    }
+  };
+
+    return (
     <div className="add-donation">
       <h2 style={{ textAlign: 'center' }}>Donación en Dinero</h2>
       <div className="donation-form">
@@ -37,7 +76,6 @@ function DonacionDineroForm({ data, setData, nombresCuenta = [], numerosCuenta =
               value={data.nombre_cuenta}
               onChange={e => {
                 const valor = e.target.value;
-                // Solo letras (mayúsculas, minúsculas y espacios)
                 if (/^[a-zA-Z\s]*$/.test(valor)) {
                   setData({ ...data, nombre_cuenta: valor });
                 }
@@ -59,7 +97,6 @@ function DonacionDineroForm({ data, setData, nombresCuenta = [], numerosCuenta =
               value={data.numero_cuenta}
               onChange={e => {
                 const valor = e.target.value;
-                // Solo números
                 if (/^\d*$/.test(valor)) {
                   setData({ ...data, numero_cuenta: valor });
                 }
@@ -76,15 +113,23 @@ function DonacionDineroForm({ data, setData, nombresCuenta = [], numerosCuenta =
         {/* 3. Comprobante */}
         <div className="form-section">
           <div className="mb-3">
-            <label><strong>URL del comprobante</strong></label>
-            <input
-              className="form-control"
-              placeholder="Comprobante URL"
-              value={data.comprobante_url}
-              onChange={e => setData({ ...data, comprobante_url: e.target.value })}
-            />
+          <label>
+            Imagen de la campaña:
+            <input type="file" accept="image/*" onChange={handleFileChange} required />
+          </label>
+
+          {error && <p className="error-msg">{error}</p>}
+
+            {uploading && <p style={{ color: 'blue' }}>Subiendo imagen...</p>}
+            {uploadError && <p style={{ color: 'red' }}>{uploadError}</p>}
+            {data.comprobante_url && (
+              <p style={{ color: 'green' }}>
+                Comprobante subido: <a href={data.comprobante_url} target="_blank" rel="noreferrer">Ver imagen</a>
+              </p>
+            )}
           </div>
         </div>
+
       </div>
     </div>
   );

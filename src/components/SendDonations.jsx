@@ -27,13 +27,34 @@ function PaqueteFormModal({
       // Carga las donaciones solo cuando se abre el modal
       const fetchDonaciones = async () => {
         try {
-          const res = await axios.get('/donaciones-en-especie');
-          setDonacionesEspecie(res.data);
+          const [donacionesRes, almacenesRes] = await Promise.all([
+            axios.get('/donaciones-en-especie'),
+            axios.get('/almacenes')
+          ]);
+      
+          const nombreAlmacenLS = localStorage.getItem('almacen');
+          const almacenMatch = almacenesRes.data.find(
+            (alm) => alm.nombre_almacen === nombreAlmacenLS
+          );
+      
+          if (!almacenMatch) {
+            console.warn('No se encontró el almacén del usuario.');
+            setDonacionesEspecie([]); // Vaciar si no hay coincidencia
+            return;
+          }
+      
+          const idAlmacen = almacenMatch.id_almacen;
+          const donacionesFiltradas = donacionesRes.data.filter(
+            (d) => d.id_almacen === idAlmacen
+          );
+      
+          setDonacionesEspecie(donacionesFiltradas);
         } catch (error) {
           console.error('Error al cargar donaciones:', error);
           alert('No se pudieron cargar las donaciones.');
         }
       };
+      
       fetchDonaciones();
     } else {
       // Resetear formulario cuando se cierra

@@ -40,6 +40,58 @@ function WelcomePage({ onLogout }) {
       .catch(error => console.error('Error fetching inventario:', error));
   }, []);
 
+  useEffect(() => {
+    const nombreAlmacen = localStorage.getItem('almacen');
+  
+    if (!nombreAlmacen) return;
+  
+    // Paso 1: obtener almacenes
+    axios.get('/almacenes')
+      .then(response => {
+        const almacenes = response.data;
+        const almacen = almacenes.find(a => a.nombre_almacen === nombreAlmacen);
+  
+        if (!almacen) return;
+  
+        const idAlmacen = almacen.id_almacen;
+  
+        // Paso 2: obtener catálogo de artículos
+        axios.get('/catalogo')
+          .then(catalogoRes => {
+            const catalogo = catalogoRes.data;
+  
+            // Paso 3: obtener artículos bajo stock
+            axios.get(`/donaciones-en-especie/bajo-stock/${idAlmacen}`)
+              .then(stockRes => {
+                const bajoStock = stockRes.data;
+  
+                // Paso 4: generar notificaciones con nombre del artículo
+                const notifs = bajoStock.map((item) => {
+                  const articulo = catalogo.find(a => a.id_articulo === item.id_articulo);
+                  const nombreArticulo = articulo ? articulo.nombre_articulo : `Artículo ID ${item.id_articulo}`;
+  
+                  return {
+                    id: item.id_donacion_especie,
+                    titulo: 'Alerta de bajo stock',
+                    descripcion: `${nombreArticulo} tiene bajo stock (Restante: ${item.cantidad_restante}).`,
+                    nivelSeveridad: 'Alta',
+                    fechaCreacion: new Date().toISOString(),
+                  };
+                });
+  
+                setNotificaciones((prev) => {
+                  const idsExistentes = new Set(prev.map(n => n.id));
+                  const nuevas = notifs.filter(n => !idsExistentes.has(n.id));
+                  return [...nuevas, ...prev];
+                });
+              })
+              .catch(err => console.error('Error obteniendo bajo stock:', err));
+          })
+          .catch(err => console.error('Error obteniendo catálogo:', err));
+      })
+      .catch(err => console.error('Error obteniendo almacenes:', err));
+  }, []);
+    
   // Para manejar notificaciones
   const manejarNuevaNotificacion = (mensaje) => {
     const timestamp = new Date().toISOString();
@@ -96,6 +148,8 @@ function WelcomePage({ onLogout }) {
       default: return 'Desconocido';
     }
   };
+  console.log('Notificaciones en render:', notificaciones);
+
 
   return (
     <div className="welcome-container">
@@ -107,7 +161,7 @@ function WelcomePage({ onLogout }) {
         </div>
         <div className="welcome-info">
           <h1>¡Bienvenido, {usuario.nombres || 'Usuario'}!</h1>
-          <p><strong>Correo:</strong> {usuario.correo}</p>
+          <p><strong>CI:</strong> {usuario.ci}</p>
           <p><strong>Rol:</strong> {getRolNombre(usuario.rol)}</p>
         </div>
       </div>

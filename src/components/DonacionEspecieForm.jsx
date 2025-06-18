@@ -7,6 +7,8 @@ function DonacionEspecieForm({ data, setData, articulos, almacenes, onSubmit }) 
   const [tallas, setTallas] = useState([]);
   const [generos, setGeneros] = useState([]);
   const [unidades, setUnidades] = useState([]);
+  const nombreAlmacenLS = localStorage.getItem('almacen');
+
 
 
   const esRopa = () => {
@@ -90,6 +92,14 @@ function DonacionEspecieForm({ data, setData, articulos, almacenes, onSubmit }) 
     label: art.nombre_articulo
   }));
 
+  const almacenUsuario = almacenes.find(alm => alm.nombre_almacen === nombreAlmacenLS);
+
+  useEffect(() => {
+    if (almacenUsuario) {
+      setData(prev => ({ ...prev, id_almacen: almacenUsuario.id_almacen }));
+    }
+  }, [almacenUsuario]);
+
   return (
 <div className="add-donation">
 <h2 style={{ textAlign: 'center' }}>Donación en Especie</h2>
@@ -115,27 +125,19 @@ function DonacionEspecieForm({ data, setData, articulos, almacenes, onSubmit }) 
     </div>
 
     <div className="mb-3">
-      <label><strong>Seleccione un almacén</strong></label>
-      <div className="almacenes-grid">
-        {almacenes.map(alm => (
-          <div
-            key={alm.id_almacen}
-            className={`almacen-card ${data.id_almacen === alm.id_almacen ? 'selected' : ''}`}
-            onClick={() =>
-              setData(prev => ({
-                ...prev,
-                id_almacen: alm.id_almacen,
-                destino_donacion: alm.nombre_almacen,
-                id_espacio: ''
-              }))
-            }
-          >
-            <div className="almacen-icon">🏬</div>
-            <div className="almacen-nombre">{alm.nombre_almacen}</div>
-          </div>
-        ))}
+  <label><strong>Almacén asignado</strong></label>
+  {almacenUsuario ? (
+    <div className="almacenes-grid">
+      <div className="almacen-card selected">
+        <div className="almacen-icon">🏬</div>
+        <div className="almacen-nombre">{almacenUsuario.nombre_almacen}</div>
       </div>
     </div>
+  ) : (
+    <div className="text-muted">No se encontró el almacén asignado.</div>
+  )}
+</div>
+
   </div>
 
   {/* 2. Espacio en el almacén */}
@@ -266,7 +268,7 @@ function DonacionEspecieForm({ data, setData, articulos, almacenes, onSubmit }) 
           <option value="">Seleccione talla</option>
           {tallas.map(t => (
             <option key={t.id_talla} value={t.id_talla}>
-              {t.nombre_talla}
+              {t.valor_talla}
             </option>
           ))}
         </select>

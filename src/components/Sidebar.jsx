@@ -4,7 +4,7 @@ import Login from './Login';
 import axios from '../App';
 import '../styles/Sidebar.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome, faChartBar, faBox, faPlus, faUser, faUsers, faTruck, faHistory, faBullhorn, faWarehouse, faHandsHelping } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faChartBar, faBox, faPlus, faUser, faUsers, faTruck, faHistory, faBullhorn, faWarehouse, faHandsHelping, faTruckFast } from '@fortawesome/free-solid-svg-icons';
 
 
 function Sidebar({ onLogout }) {
@@ -58,7 +58,7 @@ function Sidebar({ onLogout }) {
   <NavLink to="/help-request"><FontAwesomeIcon icon={faTruck} /> Solicitudes</NavLink>
 </li>
 <li className="card-option">
-  <NavLink to="/salidas"><FontAwesomeIcon icon={faHandsHelping} /> Salidas</NavLink>
+  <NavLink to="/salidas"><FontAwesomeIcon icon={faTruckFast} /> Salidas</NavLink>
 </li>
 
 

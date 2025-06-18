@@ -1,48 +1,85 @@
 import React, { useState, useEffect } from 'react';
-import axios from '../axios'; // Asegúrate de que esté configurado correctamente
-import '../styles/History.css'; // Asegúrate de tener este archivo CSS
+import axios from '../axios';
+import '../styles/History.css';
 
 function DonationHistory() {
   const [donacionesDinero, setDonacionesDinero] = useState([]);
   const [donacionesEspecie, setDonacionesEspecie] = useState([]);
   const [catalogo, setCatalogo] = useState([]);
   const [unidades, setUnidades] = useState([]);
-
-
+  const [modalUrl, setModalUrl] = useState(null); // URL temporal (blob)
+  const [loadingImage, setLoadingImage] = useState(false);
+  
   useEffect(() => {
     const fetchDonaciones = async () => {
       try {
-        const [dineroRes, especieRes, catalogoRes, unidadesRes] = await Promise.all([
+        // Peticiones paralelas
+        const [dineroRes, especieRes, catalogoRes, unidadesRes, almacenesRes] = await Promise.all([
           axios.get('/donaciones-en-dinero'),
           axios.get('/donaciones-en-especie'),
           axios.get('/catalogo'),
-          axios.get('/unidades')
+          axios.get('/unidades'),
+          axios.get('/almacenes') // Traemos almacenes también
         ]);
-
+  
+        const nombreAlmacenLS = localStorage.getItem('almacen'); // nombre guardado
+        const almacenMatch = almacenesRes.data.find(
+          (alm) => alm.nombre_almacen === nombreAlmacenLS
+        );
+  
+        if (!almacenMatch) {
+          console.warn('No se encontró el almacén del usuario.');
+          setDonacionesEspecie([]); // vaciar si no hay coincidencia
+        } else {
+          const idAlmacenUsuario = almacenMatch.id_almacen;
+          const donacionesFiltradas = especieRes.data.filter(
+            (d) => d.id_almacen === idAlmacenUsuario
+          );
+          setDonacionesEspecie(donacionesFiltradas);
+        }
+  
         setDonacionesDinero(dineroRes.data);
-        setDonacionesEspecie(especieRes.data);
         setCatalogo(catalogoRes.data);
         setUnidades(unidadesRes.data);
       } catch (error) {
         console.error('Error al obtener las donaciones:', error);
       }
     };
-
+  
     fetchDonaciones();
   }, []);
+  
 
-  // Función para obtener el nombre del artículo por su ID
-    const getArticuloNombre = (id) => {
-        const articulo = catalogo.find((item) => item.id_articulo === id);
-        return articulo ? articulo.nombre_articulo : 'Desconocido';
-    };
+  const getArticuloNombre = (id) => {
+    const articulo = catalogo.find((item) => item.id_articulo === id);
+    return articulo ? articulo.nombre_articulo : 'Desconocido';
+  };
 
-    const getUnidadSimbolo = (id) => {
-      const unidad = unidades.find((u) => u.id_unidad === id);
-      return unidad ? unidad.simbolo : '-';
-    };
-    
+  const getUnidadSimbolo = (id) => {
+    const unidad = unidades.find((u) => u.id_unidad === id);
+    return unidad ? unidad.simbolo : '-';
+  };
 
+  const handleVerComprobante = async (urlProtegida) => {
+    try {
+      setLoadingImage(true);
+      const res = await axios.get(urlProtegida, {
+        responseType: 'blob',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}` // Asegúrate de que tu token esté aquí
+        }
+      });
+      const blobUrl = URL.createObjectURL(res.data);
+      setModalUrl(blobUrl);
+    } catch (err) {
+      console.error('Error cargando comprobante:', err);
+      alert('No se pudo cargar el comprobante.');
+    } finally {
+      setLoadingImage(false);
+    }
+  };
+  
+  
 
   return (
     <div className="donation-history">
@@ -51,35 +88,47 @@ function DonationHistory() {
       <section>
         <h2>Donaciones en Dinero</h2>
         <table>
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Apellido</th>
-              <th>Monto</th>
-              <th>Divisa</th>
-              <th>Nombre Cuenta</th>
-              <th>Número Cuenta</th>
-              <th>Comprobante</th>
-            </tr>
-          </thead>
-          <tbody>
-            {donacionesDinero.map((donacion) => (
-              <tr key={donacion.id_donacion}>
-                <td>{donacion.nombres}</td>
-                <td>{donacion.apellido_paterno}</td>
-                <td>{donacion.monto}</td>
-                <td>{donacion.divisa}</td>
-                <td>{donacion.nombre_cuenta}</td>
-                <td>{donacion.numero_cuenta}</td>
-                <td>
-                  <a href={donacion.comprobante_url} target="_blank" rel="noopener noreferrer">
-                    Ver Comprobante
-                  </a>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+  <thead>
+    <tr>
+      <th>Nombre</th>
+      <th>Apellido</th>
+      <th>Monto</th>
+      <th>Divisa</th>
+      <th>Nombre Cuenta</th>
+      <th>Número Cuenta</th>
+      <th>Comprobante</th>
+    </tr>
+  </thead>
+  <tbody>
+    {donacionesDinero.map((donacion) => (
+      <tr key={donacion.id_donacion}>
+        <td>{donacion.nombres}</td>
+        <td>{donacion.apellido_paterno}</td>
+        <td>{donacion.monto}</td>
+        <td>{donacion.divisa}</td>
+        <td>{donacion.nombre_cuenta}</td>
+        <td>{donacion.numero_cuenta}</td>
+        <td>
+          {donacion.comprobante_url ? (
+            <img
+              src={donacion.comprobante_url}
+              alt="Comprobante"
+              style={{
+                width: '100px',
+                height: '60px',
+                objectFit: 'cover',
+                borderRadius: '4px'
+              }}
+            />
+          ) : (
+            'No disponible'
+          )}
+        </td>
+
+      </tr>
+    ))}
+  </tbody>
+</table>
       </section>
 
       <section>
@@ -106,11 +155,24 @@ function DonationHistory() {
                 <td>{donacion.cantidad}</td>
                 <td>{donacion.estado_articulo}</td>
                 <td>{getUnidadSimbolo(donacion.id_unidad)}</td>
-                </tr>
+              </tr>
             ))}
           </tbody>
         </table>
       </section>
+      {modalUrl && (
+  <div className="modal-overlay" onClick={() => setModalUrl(null)}>
+    <div className="modal-content" onClick={e => e.stopPropagation()}>
+      <button className="close-button" onClick={() => setModalUrl(null)}>X</button>
+      {loadingImage ? (
+        <p>Cargando comprobante...</p>
+      ) : (
+        <img src={modalUrl} alt="Comprobante" className="modal-image" />
+      )}
+    </div>
+  </div>
+)}
+
     </div>
   );
 }

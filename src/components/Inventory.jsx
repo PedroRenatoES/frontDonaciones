@@ -75,7 +75,7 @@ function Inventory() {
 
   const descargarExcel = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/reportes/stock/excel', {
+      const response = await axios.get('/reportes/stock/excel', {
         responseType: 'blob'
       });
 
@@ -113,16 +113,17 @@ function Inventory() {
       </select>
     </div>
 
-    <div>
-      <label>Almacén:</label>
-      <select value={almacenFiltro} onChange={(e) => setAlmacenFiltro(e.target.value)}>
-        <option value="">Todos</option>
-        {almacenes.map((almacen, idx) => (
-          <option key={idx} value={almacen}>{almacen}</option>
-        ))}
-      </select>
-    </div>
-
+    {localStorage.getItem('rol') === '1' && (
+  <div>
+    <label>Almacén:</label>
+    <select value={almacenFiltro} onChange={(e) => setAlmacenFiltro(e.target.value)}>
+      <option value="">Todos</option>
+      {almacenes.map((almacen, idx) => (
+        <option key={idx} value={almacen}>{almacen}</option>
+      ))}
+    </select>
+  </div>
+)}
     <div className="download-wrapper">
       <label style={{ visibility: 'hidden' }}>Descargar:</label> {/* para alinear verticalmente */}
       <button className="btn-download" onClick={descargarExcel}>
@@ -173,7 +174,7 @@ function Inventory() {
     </section>
 
     <section className="table-section">
-      <h4>Donaciones en Dinero</h4>
+      <h4>Donaciones en Dinero (Cuenta)</h4>
       <table className="activity-table">
         <thead>
           <tr>

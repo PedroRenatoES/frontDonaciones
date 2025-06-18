@@ -3,6 +3,8 @@ import axios from '../axios';
 import '../styles/Almacen.css';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import ModalCambioEspacio from './ModalCambioEspacio';
+
 
 function Almacenes() {
   const [almacenes, setAlmacenes] = useState([]);
@@ -19,6 +21,7 @@ function Almacenes() {
   const [estanteSeleccionado, setEstanteSeleccionado] = useState(null);
   const [espaciosEstante, setEspaciosEstante] = useState([]);
   const [mostrarModalCrear, setMostrarModalCrear] = useState(false);
+  const [modalIdDonacion, setModalIdDonacion] = useState(null); // id_donacion_especie para mover
   const [nuevoEstante, setNuevoEstante] = useState({
     nombre: '',
     cantidad_filas: '',
@@ -26,6 +29,18 @@ function Almacenes() {
   });
   const [espacioFiltro, setEspacioFiltro] = useState('');
 
+  const [modalAbierto, setModalAbierto] = useState(false);
+const [idArticuloSeleccionado, setIdArticuloSeleccionado] = useState(null);
+
+const abrirModal = (idArticulo) => {
+  setIdArticuloSeleccionado(idArticulo);
+  setModalAbierto(true);
+};
+
+const cerrarModal = () => {
+  setModalAbierto(false);
+  setIdArticuloSeleccionado(null);
+};
   
   
 
@@ -321,12 +336,16 @@ function Almacenes() {
       </select>
     </div>
 
+    
+
     {/* Botón para abrir el modal */}
+    {localStorage.getItem('rol') === '1' && (
     <div className="col-md-6 mb-2 d-flex align-items-end justify-content-end">
       <button className="btn btn-success" onClick={() => setModalVisible(true)}>
         Crear Nuevo Almacén
       </button>
     </div>
+  )}
   </div>
 
 {/* Modal para crear un nuevo almacén */}
@@ -470,47 +489,65 @@ function Almacenes() {
 
   </div>
 
-        {/* Tabla */}
-        <table className="almacenes-table">
-          <thead>
-            <tr>
-              <th>Artículo</th>
-              <th>Categoría</th>
-              <th>Unidad</th>
-              <th>Cantidad</th>
-              <th>Ubicaciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {itemsFiltrados.length > 0 ? (
-              itemsFiltrados.map(item => (
-                <tr key={item.id_articulo}>
-                  <td>{item.nombre_articulo}</td>
-                  <td>{item.nombre_categoria}</td>
-                  <td>{item.nombre_unidad}</td>
-                  <td>{item.cantidad_total}</td>
-                  <td>
-                    <ul>
-                      {[...new Map(item.ubicaciones.map(u => {
-                        const key = `${u.espacio}-${u.estante}-${u.almacen}`;
-                        return [key, u];
-                      })).values()].map((ubicacion, idx) => (
-                        <li key={idx}>
-                          {ubicacion.espacio} – {ubicacion.estante} – {ubicacion.almacen}
-                        </li>
-                      ))}
-                    </ul>
-                  </td>
+{/* Tabla */}
+<table className="almacenes-table">
+  <thead>
+  <tr>
+    <th>Artículo</th>
+    <th>Categoría</th>
+    <th>Unidad</th>
+    <th>Cantidad</th>
+    <th>Ubicaciones</th>
+    <th>Acciones</th> {/* Nueva columna */}
+  </tr>
+</thead>
+<tbody>
+  {itemsFiltrados.length > 0 ? (
+    itemsFiltrados.map(item => (
+      <tr key={item.id_articulo}>
+        <td>{item.nombre_articulo}</td>
+        <td>{item.nombre_categoria}</td>
+        <td>{item.nombre_unidad}</td>
+        <td>{item.cantidad_total}</td>
+        <td>
+          <ul>
+            {[...new Map(item.ubicaciones.map(u => {
+              const key = `${u.espacio}-${u.estante}-${u.almacen}`;
+              return [key, u];
+            })).values()].map((ubicacion, idx) => (
+              <li key={idx}>
+                {ubicacion.espacio} – {ubicacion.estante} – {ubicacion.almacen}
+              </li>
+            ))}
+          </ul>
+        </td>
+        <td>
+          <button onClick={() => abrirModal(item.id_articulo)}>
+            Cambiar Ubicación
+          </button>
+        </td>
+      </tr>
+    ))
+  ) : (
+    <tr>
+      <td colSpan="6" className="text-center">No hay artículos disponibles para mostrar</td>
+    </tr>
+  )}
+</tbody>
+</table>
 
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="5" className="text-center">No hay artículos disponibles para mostrar</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+
+{modalAbierto && (
+  <ModalCambioEspacio
+    idDonacion={idArticuloSeleccionado}
+    onClose={cerrarModal}
+    onSuccess={() => {
+      cerrarModal();
+      filterItems(); // Para refrescar la tabla
+    }}
+  />
+)}
+
 
         <button className="btn btn-outline-primary mb-4" onClick={generarPDF}>
           Exportar a PDF
