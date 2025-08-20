@@ -27,7 +27,7 @@ const HelpRequest = () => {
 
 const fetchSolicitudesExternas = async () => {
   try {
-    const res = await fetch('http://34.123.227.162:8080/api/solicitudes/aprobadas/almacen');
+    const res = await fetch('https://springboot-backend-dpyv.onrender.com/api/solicitudes/aprobadas/almacen');
     const data = await res.json();
     setPedidos(data);
   } catch (err) {
@@ -66,7 +66,7 @@ const fetchSolicitudesExternas = async () => {
 
   const fetchSolicitudesInternas = async () => {
     try {
-      const response = await fetch('http://34.28.246.100:4000/', {
+      const response = await fetch('https://alaschiquitanasapi-production.up.railway.app/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
