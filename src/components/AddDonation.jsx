@@ -188,7 +188,7 @@ const handleSubmit = async () => {
       <label>Tipo de Donación</label>
       <select name="tipo_donacion" onChange={handleBaseChange}>
         <option value="">Selecciona</option>
-        <option value="dinero">Dinero</option>
+        <option value="Dinero">Dinero</option>
         <option value="especie">Especie</option>
       </select>
     </div>
@@ -282,9 +282,9 @@ const handleSubmit = async () => {
     </div>
       
   {/* FORMULARIO ESPECÍFICO */}
-  {tipoDonacion && (
+  {tipoDonacion && (  
     <div className="specific-donation-form">
-      {tipoDonacion === 'dinero' ? (
+      {tipoDonacion === 'Dinero' ? (
       <DonacionDineroForm
         data={dineroData}
         setData={setDineroData}

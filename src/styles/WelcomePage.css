@@ -1,17 +1,24 @@
-/* Contenedor principal */
+
 .welcome-container {
-    padding: 40px 20px;
-    background: linear-gradient(to right, #fefcea, #f1f1f1);
+    padding: 40px;
     min-height: 100vh;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 1400px;
+    margin: 0;
+}
+
+/* Header Section */
+.welcome-header-section {
+    margin-bottom: 40px;
 }
 
 /* Título principal */
 .welcome-container h1 {
-    font-size: 32px;
-    color: #2c3e50;
+    font-size: 36px;
+    color: #1e293b;
     font-weight: 700;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    letter-spacing: -0.025em;
 }
 
 /* Info del usuario */
@@ -21,13 +28,9 @@
     margin-bottom: 8px;
 }
 
-/* Caja principal con contenido */
-.welcome-content {
-    margin-top: 30px;
-    background-color: white;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+/* Stats Section */
+.welcome-stats-section {
+    margin-bottom: 40px;
 }
 
 /* Mensaje superior */
@@ -40,55 +43,57 @@
 
 /* Contenedor de tarjetas */
 .welcome-cards {
-    display: flex;
-    gap: 20px;
-    justify-content: space-between;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
 }
 
 /* Tarjetas individuales */
 .welcome-card {
-    flex: 1;
-    min-width: 240px;
     background-color: #ffffff;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
-    text-align: center;
-    transition: transform 0.2s ease;
-    border-left: 5px solid #ffd833;
+    padding: 32px 28px;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    text-align: left;
+    transition: all 0.2s ease;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #3b82f6;
+    position: relative;
+    height: 150px;
 }
 
 .welcome-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
 .welcome-card h3 {
     margin-top: 0;
-    font-size: 20px;
-    color: #333;
-    margin-bottom: 10px;
+    font-size: 14px;
+    color: #64748b;
+    margin-bottom: 16px;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
 }
 
 .welcome-card p {
-    font-size: 22px;
-    font-weight: 700;
-    color: #2196f3;
+    font-size: 16px;
+    font-weight: 400;
+    color: #1e293b;
     margin: 0;
+    line-height: 1.5;
 }
 
 /* Card de bienvenida */
 .welcome-header-card {
     display: flex;
     align-items: center;
-    gap: 30px;
-    background-color: #fff;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-    margin-bottom: 30px;
-    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+    padding: 40px;
+    margin-bottom: 12px;
 }
 
 /* Imagen de usuario */
@@ -96,22 +101,25 @@
     width: 120px;
     height: 120px;
     border-radius: 50%;
-    border: 4px solid #ffd833;
+    border: 4px solid #3b82f6;
     object-fit: cover;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
 /* Info del usuario */
 .welcome-info h1 {
-    font-size: 28px;
-    color: #2c3e50;
+    font-size: 32px;
+    color: #1e293b;
     font-weight: 700;
-    margin: 0 0 10px;
+    margin: 0 0 12px;
+    letter-spacing: -0.025em;
 }
 
 .welcome-info p {
-    font-size: 16px;
-    color: #444;
-    margin: 4px 0;
+    font-size: 18px;
+    color: #64748b;
+    margin: 0;
+    font-weight: 400;
 }
 
 /* Responsivo para pantallas pequeñas */
@@ -135,19 +143,19 @@
 }
 
 .notificaciones-container {
-    margin-top: 30px;
     background-color: #ffffff;
-    padding: 25px 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    padding: 32px;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e2e8f0;
 }
 
 .notificaciones-container h3 {
-    margin-bottom: 20px;
-    font-size: 22px;
-    color: #333;
-    border-bottom: 2px solid #e0e0e0;
-    padding-bottom: 10px;
+    margin-bottom: 24px;
+    font-size: 24px;
+    color: #1e293b;
+    font-weight: 700;
+    letter-spacing: -0.025em;
 }
 
 .notificaciones-scroll {
@@ -157,42 +165,73 @@
 }
 
 .notificacion-card {
-    background-color: white;
-    border-left: 6px solid #3498db;
-    padding: 15px 20px;
-    margin-bottom: 12px;
-    border-radius: 6px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s;
+    background-color: #fafbfc;
+    border-left: 4px solid #ef4444;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    border: 1px solid #e2e8f0;
 }
 
 .notificacion-card:hover {
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.notificacion-card p {
-    margin: 0 0 5px;
-    font-size: 1em;
-    color: #444;
+.notificacion-content h4 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #ef4444;
 }
 
-.notificacion-card span {
-    font-size: 0.85em;
-    color: #888;
+.notificacion-content p {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.notificacion-timestamp {
+    font-size: 12px;
+    color: #94a3b8;
     display: block;
+    font-weight: 500;
 }
 
 /* Severidad por color */
 .severidad-baja {
-    border-left-color: #2ecc71;
+    border-left-color: #10b981;
+}
+
+.severidad-baja .notificacion-content h4 {
+    color: #10b981;
 }
 
 .severidad-media {
-    border-left-color: #f1c40f;
+    border-left-color: #f59e0b;
+}
+
+.severidad-media .notificacion-content h4 {
+    color: #f59e0b;
 }
 
 .severidad-alta {
-    border-left-color: #e74c3c;
+    border-left-color: #ef4444;
+}
+
+.severidad-alta .notificacion-content h4 {
+    color: #ef4444;
+}
+
+/* No notifications */
+.no-notifications {
+    text-align: center;
+    padding: 40px 20px;
+    color: #94a3b8;
+    font-style: italic;
 }
 
 .modal-backdrop {

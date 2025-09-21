@@ -16,7 +16,7 @@ function DonacionDineroForm({ data, setData, nombresCuenta = [], numerosCuenta =
   
     try {
       const response = await axios.post(
-        'https://backenddonaciones.onrender.com/api/upload',
+        'http://localhost:5000/api/upload',
         formData,
         {
           headers: {
@@ -118,7 +118,7 @@ function DonacionDineroForm({ data, setData, nombresCuenta = [], numerosCuenta =
             <input type="file" accept="image/*" onChange={handleFileChange} required />
           </label>
 
-          {error && <p className="error-msg">{error}</p>}
+          {uploadError && <p className="error-msg">{uploadError}</p>}
 
             {uploading && <p style={{ color: 'blue' }}>Subiendo imagen...</p>}
             {uploadError && <p style={{ color: 'red' }}>{uploadError}</p>}

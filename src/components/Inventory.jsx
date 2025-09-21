@@ -4,27 +4,55 @@ import '../styles/Inventory.css';
 import DonorsModal from './DonorsModal';
 import MoneyDonorsModal from './MoneyDonorsModal';
 
-
-
 function Inventory() {
   const [inventario, setInventario] = useState([]);
   const [donacionesDinero, setDonacionesDinero] = useState([]);
   const [categoriaFiltro, setCategoriaFiltro] = useState('');
   const [almacenFiltro, setAlmacenFiltro] = useState('');
-  const [montoAnimado, setMontoAnimado] = useState(0); // ✅ Hook correcto
+  const [montoAnimado, setMontoAnimado] = useState(0);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [articuloSeleccionado, setArticuloSeleccionado] = useState(null);
   const [modalDineroAbierto, setModalDineroAbierto] = useState(false);
+  const [almacenes, setAlmacenes] = useState([]); // Estado para la lista de almacenes
 
+  useEffect(() => {
+    const fetchAlmacenes = async () => {
+      try {
+        const response = await axios.get('/almacenes'); // Obtener la lista de almacenes
+        setAlmacenes(response.data);
+      } catch (error) {
+        console.error('Error al obtener la lista de almacenes:', error);
+      }
+    };
 
+    fetchAlmacenes();
+  }, []);
 
   useEffect(() => {
     const fetchInventario = async () => {
       try {
+        // Obtener el nombre del almacén desde localStorage
+        const nombreAlmacenLS = localStorage.getItem('almacen');
+
+        if (!nombreAlmacenLS) {
+          console.error('No se encontró el nombre del almacén en localStorage.');
+          return;
+        }
+
+        // Buscar el id del almacén correspondiente
+        const almacenUsuario = almacenes.find(alm => alm.nombre_almacen === nombreAlmacenLS);
+
+        if (!almacenUsuario) {
+          console.error('No se encontró un almacén que coincida con el nombre almacenado.');
+          return;
+        }
+
+        // Llamar al endpoint con el id del almacén
         const [resInventario, resDinero] = await Promise.all([
-          axios.get('/inventario/ubicaciones'),
-          axios.get('/donaciones-en-dinero')
+          axios.get(`/inventario/ubicaciones?idAlmacen=${almacenUsuario.id_almacen}`),
+          axios.get('/donaciones-en-dinero'),
         ]);
+
         setInventario(resInventario.data);
         setDonacionesDinero(resDinero.data);
       } catch (error) {
@@ -32,8 +60,10 @@ function Inventory() {
       }
     };
 
-    fetchInventario();
-  }, []);
+    if (almacenes.length > 0) {
+      fetchInventario();
+    }
+  }, [almacenes]); // Dependencia para asegurarse de que almacenes esté disponible
 
   // ✅ Calcular monto total de donaciones en dinero
   const montoTotalDinero = donacionesDinero.reduce(
@@ -65,7 +95,6 @@ function Inventory() {
 
   // ✅ Filtros
   const categorias = [...new Set(inventario.map(item => item.nombre_categoria))];
-  const almacenes = [...new Set(inventario.flatMap(item => item.ubicaciones.map(u => u.almacen)))];
 
   const inventarioFiltrado = inventario.filter(item => {
     const coincideCategoria = !categoriaFiltro || item.nombre_categoria === categoriaFiltro;
@@ -98,118 +127,111 @@ function Inventory() {
   };
 
   return (
-  <div className="inventory">
-    <h1 className='inventory-title'>Inventario de Donaciones</h1>
+    <div className="inventory">
+      <h1 className='inventory-title'>Inventario de Donaciones</h1>
 
-    <div className="inventory-actions">
-  <div className="filters">
-    <div>
-      <label>Categoría:</label>
-      <select value={categoriaFiltro} onChange={(e) => setCategoriaFiltro(e.target.value)}>
-        <option value="">Todas</option>
-        {categorias.map((categoria, idx) => (
-          <option key={idx} value={categoria}>{categoria}</option>
-        ))}
-      </select>
-    </div>
+      <div className="inventory-actions">
+        <div className="filters">
+          <div>
+            <label>Categoría:</label>
+            <select value={categoriaFiltro} onChange={(e) => setCategoriaFiltro(e.target.value)}>
+              <option value="">Todas</option>
+              {categorias.map((categoria, idx) => (
+                <option key={idx} value={categoria}>{categoria}</option>
+              ))}
+            </select>
+          </div>
 
-    {localStorage.getItem('rol') === '1' && (
-  <div>
-    <label>Almacén:</label>
-    <select value={almacenFiltro} onChange={(e) => setAlmacenFiltro(e.target.value)}>
-      <option value="">Todos</option>
-      {almacenes.map((almacen, idx) => (
-        <option key={idx} value={almacen}>{almacen}</option>
-      ))}
-    </select>
-  </div>
-)}
-    <div className="download-wrapper">
-      <label style={{ visibility: 'hidden' }}>Descargar:</label> {/* para alinear verticalmente */}
-      <button className="btn-download" onClick={descargarExcel}>
-        📥 Descargar Excel
-      </button>
-    </div>
-  </div>
-</div>
+          {localStorage.getItem('rol') === '1' && (
+            <div>
+              <label>Almacén:</label>
+              <select value={almacenFiltro} onChange={(e) => setAlmacenFiltro(e.target.value)}>
+                <option value="">Todos</option>
+                {almacenes.map((almacen, idx) => (
+                  <option key={idx} value={almacen.nombre_almacen}>{almacen.nombre_almacen}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          <div className="download-wrapper">
+            <label style={{ visibility: 'hidden' }}>Descargar:</label>
+            <button className="btn-download" onClick={descargarExcel}>
+              📥 Descargar Excel
+            </button>
+          </div>
+        </div>
+      </div>
 
-    <section className="table-section">
-      <h4>Donaciones en Especie</h4>
-      <table className="activity-table">
-        <thead>
-          <tr>
-            <th>Artículo</th>
-            <th>Categoría</th>
-            <th>Unidad</th>
-            <th>Cantidad Total</th>
-            <th>Ubicaciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {inventarioFiltrado.map((item) => (
-            <tr key={item.id_articulo}>
-            <td onClick={() => abrirModal(item)} style={{ cursor: 'pointer', color: 'blue' }}>
-              {item.nombre_articulo}
-            </td>
-              <td>{item.nombre_categoria}</td>
-              <td>{item.nombre_unidad}</td>
-              <td>{item.cantidad_total}</td>
-              <td>
-                <ul>
-                  {[...new Map(item.ubicaciones.map(u => {
-                    const key = `${u.espacio}-${u.estante}-${u.almacen}`;
-                    return [key, u];
-                  })).values()].map((ubicacion, idx) => (
-                    <li key={idx}>
-                      {ubicacion.espacio} – {ubicacion.estante} – {ubicacion.almacen}
-                    </li>
-                  ))}
-                </ul>
-              </td>
-
+      <section className="table-section">
+        <h4>Donaciones en Especie</h4>
+        <table className="activity-table">
+          <thead>
+            <tr>
+              <th>Artículo</th>
+              <th>Categoría</th>
+              <th>Unidad</th>
+              <th>Cantidad Total</th>
+              <th>Ubicaciones</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </section>
+          </thead>
+          <tbody>
+            {inventarioFiltrado.map((item) => (
+              <tr key={item.id_articulo}>
+                <td onClick={() => abrirModal(item)} style={{ cursor: 'pointer', color: 'blue' }}>
+                  {item.nombre_articulo}
+                </td>
+                <td>{item.nombre_categoria}</td>
+                <td>{item.nombre_unidad}</td>
+                <td>{item.cantidad_total}</td>
+                <td>
+                  <ul>
+                    {[...new Map(item.ubicaciones.map(u => {
+                      const key = `${u.espacio}-${u.estante}-${u.almacen}`;
+                      return [key, u];
+                    })).values()].map((ubicacion, idx) => (
+                      <li key={idx}>
+                        {ubicacion.espacio} – {ubicacion.estante} – {ubicacion.almacen}
+                      </li>
+                    ))}
+                  </ul>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
 
-    <section className="table-section">
-      <h4>Donaciones en Dinero (Cuenta)</h4>
-      <table className="activity-table">
-        <thead>
-          <tr>
-            <th>Monto Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>{montoAnimado.toFixed(2)} Bs</td>
-          </tr>
-        </tbody>
-      </table>
-      <button className="btn-donors" onClick={() => setModalDineroAbierto(true)}>
-  Ver Detalle
-</button>
+      <section className="table-section">
+        <h4>Donaciones en Dinero (Cuenta)</h4>
+        <table className="activity-table">
+          <thead>
+            <tr>
+              <th>Monto Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{montoAnimado.toFixed(2)} Bs</td>
+            </tr>
+          </tbody>
+        </table>
+        <button className="btn-donors" onClick={() => setModalDineroAbierto(true)}>
+          Ver Detalle
+        </button>
+      </section>
+      <DonorsModal
+        isOpen={modalAbierto}
+        articuloId={articuloSeleccionado?.id_articulo}
+        articuloNombre={articuloSeleccionado?.nombre_articulo}
+        onClose={() => setModalAbierto(false)}
+      />
 
-    </section>
-    <DonorsModal
-  isOpen={modalAbierto}
-  articuloId={articuloSeleccionado?.id_articulo}
-  articuloNombre={articuloSeleccionado?.nombre_articulo}
-  onClose={() => setModalAbierto(false)}
-/>
-
-<MoneyDonorsModal
-  isOpen={modalDineroAbierto}
-  onClose={() => setModalDineroAbierto(false)}
-/>
-
-
-  </div>
-
-
+      <MoneyDonorsModal
+        isOpen={modalDineroAbierto}
+        onClose={() => setModalDineroAbierto(false)}
+      />
+    </div>
   );
-  
 }
 
 export default Inventory;

@@ -3,7 +3,7 @@
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background: linear-gradient(#f7f1d9, #fff);
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
     padding: 20px;
 }
 
@@ -12,9 +12,10 @@
     width: 800px;
     height: 500px;
     background-color: white;
-    border-radius: 10px;
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e2e8f0;
 }
 
 .login-image {
@@ -41,10 +42,11 @@
 
 .login-form h2 {
     text-align: center;
-    margin-bottom: 30px;
-    color: #333;
+    margin-bottom: 32px;
+    color: #1e293b;
     font-weight: 700;
-    font-size: 24px;
+    font-size: 28px;
+    letter-spacing: -0.025em;
 }
 
 .input-group {
@@ -64,29 +66,40 @@
 
 .input-group input {
     width: 100%;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 14px 18px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     font-size: 16px;
+    transition: all 0.2s ease;
+    background-color: #fff;
+}
+
+.input-group input:focus {
+    border-color: #3b82f6;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    transform: translateY(-1px);
 }
 
 .login-button {
     width: 100%;
-    padding: 12px;
-    background-color: #ffd833;
-    color: black;
+    padding: 14px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 10px;
     font-size: 16px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
 }
 
 .login-button:hover {
-    background-color: black;
-    color: #ffd833;
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .error-message {

@@ -41,7 +41,7 @@ function WelcomePage({ onLogout }) {
   }, []);
 
 useEffect(() => {
-  axios.get('https://backenddonaciones.onrender.com/api/inventario/ubicaciones')
+  axios.get('http://localhost:5000/api/inventario/ubicaciones')
     .then(response => {
       const inventario = response.data;
       console.log('Datos de inventario:', inventario); // ✅ Verifica si la API devuelve datos
@@ -140,39 +140,53 @@ useEffect(() => {
     <div className="welcome-container">
       <MetricasWebSocketListener onNuevaNotificacion={manejarNuevaNotificacion} />
 
-      <div className="welcome-header-card">
-        <div className="welcome-avatar">
-          <img src="user.png" alt="Usuario" />
-        </div>
-        <div className="welcome-info">
-          <h1>¡Bienvenido, {usuario.nombres || 'Usuario'}!</h1>
-          <p><strong>CI:</strong> {usuario.ci}</p>
-          <p><strong>Rol:</strong> {getRolNombre(usuario.rol)}</p>
+      {/* Welcome Message */}
+      <div className="welcome-header-section">
+        <div className="welcome-header-card">
+          <div className="welcome-info">
+            <h1>¡Bienvenido!</h1>
+            <p>Gestiona las donaciones y el inventario de manera eficiente</p>
+          </div>
         </div>
       </div>
 
-      <div className="welcome-content">
+      {/* Statistics Cards Section */}
+      <div className="welcome-stats-section">
         <div className="welcome-cards">
           <div className="welcome-card">
-            <h3>Donaciones</h3>
-            <p>Total de donaciones recibidas: {donacionesCount}</p>
+            <h2 style={{fontSize: '30px', fontWeight: 'bold', marginBottom: '10px'}}>DONACIONES</h2>
+            <div className="contador" style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: '20px'}}>
+              <p>Total de donaciones recibidas:</p>
+              <h2>{donacionesCount}</h2>
+            </div>
           </div>
           <div className="welcome-card">
-            <h3>Inventario</h3>
-            <p>Artículos en inventario: {inventarioCount}</p>
+            <h2 style={{fontSize: '30px', fontWeight: 'bold', marginBottom: '10px'}}>INVENTARIO</h2>
+            <div className="contador" style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: '20px'}}>
+              <p>Artículos en inventario:</p>
+              <h2>{inventarioCount}</h2>
+            </div>
+            
           </div>
           <div className="welcome-card">
-            <h3>Donantes</h3>
-            <p>Donantes registrados: {donantesCount}</p>
+            <h2 style={{fontSize: '30px', fontWeight: 'bold', marginBottom: '10px'}}>DONANTES</h2>
+            <div className="contador" style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: '20px'}}>
+              <p>Donantes registrados:</p>
+              <h2>{donantesCount}</h2>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Notificaciones Card */}
+      {/* Notifications Section */}
       <div className="notificaciones-container">
         <h3>Notificaciones recientes</h3>
         <div className="notificaciones-scroll">
-          {notificaciones.length === 0 && <p>No hay notificaciones</p>}
+          {notificaciones.length === 0 && (
+            <div className="no-notifications">
+              <p>No hay notificaciones</p>
+            </div>
+          )}
           {notificaciones.map((notif) => {
             const claseSeveridad = notif.nivelSeveridad
               ? `severidad-${notif.nivelSeveridad.toLowerCase()}`
@@ -182,13 +196,15 @@ useEffect(() => {
                 key={notif.id || notif.hora}
                 className={`notificacion-card ${claseSeveridad}`}
               >
-                <h4>{notif.titulo || 'Notificación'}</h4>
-                <p>{notif.descripcion || notif.mensaje}</p>
-                <span>
-                  {notif.fechaCreacion
-                    ? new Date(notif.fechaCreacion).toLocaleString()
-                    : notif.hora}
-                </span>
+                <div className="notificacion-content">
+                  <h4>{notif.titulo || 'Notificación'}</h4>
+                  <p>{notif.descripcion || notif.mensaje}</p>
+                  <span className="notificacion-timestamp">
+                    {notif.fechaCreacion
+                      ? new Date(notif.fechaCreacion).toLocaleString()
+                      : notif.hora}
+                  </span>
+                </div>
               </div>
             );
           })}

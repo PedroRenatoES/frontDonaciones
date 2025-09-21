@@ -12,12 +12,12 @@ function CampanaCard({ campana, formatearFecha }) {
     if (!showDetails) return;
 
     // Cargar donaciones en dinero
-    axios.get(`https://backenddonaciones.onrender.com/api/donaciones-en-dinero/por-campana/${campana.id_campana}`)
+    axios.get(`http://localhost:5000/api/donaciones-en-dinero/por-campana/${campana.id_campana}`)
       .then(res => setDonacionesDinero(res.data))
       .catch(err => console.error(err));
 
     // Cargar donaciones en especie
-    axios.get(`https://backenddonaciones.onrender.com/api/donaciones-en-especie/por-campana/${campana.id_campana}`)
+    axios.get(`http://localhost:5000/api/donaciones-en-especie/por-campana/${campana.id_campana}`)
       .then(res => setDonacionesEspecie(res.data))
       .catch(err => console.error(err));
   }, [showDetails, campana.id_campana]);

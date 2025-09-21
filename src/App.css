@@ -1,21 +1,30 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(#f7f1d9, #fff);}
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  color: #334155;
+  padding: 0;
+}
 
 .app {
-  display: flex;
   min-height: 100vh;
+}
+
+.main-content {
+  margin-left: 260px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .content {
   flex: 1;
-  transition: margin-left 0.3s;
+  transition: margin-top 0.3s;
 }
 
-.content.with-sidebar {
-  margin-left: 250px;
+.content.with-navbar {
+  margin-top: 0px;
 }
 
 button {
@@ -44,67 +53,85 @@ h5 {
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
   background-color: white;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 th,
 td {
-  padding: 12px 15px;
+  padding: 16px 20px;
   text-align: left;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 th {
-  background-color: #f8f9fa;
+  background-color: #f8fafc;
   font-weight: 600;
-  color: #555;
+  color: #475569;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 tr:hover {
-  background-color: #f9f9f9;
+  background-color: #f8fafc;
+  transition: background-color 0.2s ease;
 }
 
 /* Estilos para botones comunes */
 .btn-edit {
-  background-color: #4caf50;
+  background-color: #10b981;
   color: white;
-  margin-right: 5px;
+  margin-right: 8px;
+  border-radius: 8px;
+  font-weight: 500;
 }
 
 .btn-delete {
-  background-color: #f44336;
+  background-color: #ef4444;
   color: white;
-  margin-right: 5px;
+  margin-right: 8px;
+  border-radius: 8px;
+  font-weight: 500;
 }
 
 .btn-view {
-  background-color: #2196f3;
+  background-color: #3b82f6;
   color: white;
-  margin-right: 5px;
+  margin-right: 8px;
+  border-radius: 8px;
+  font-weight: 500;
 }
 
 .btn-save {
-  background-color: #4caf50;
+  background-color: #10b981;
   color: white;
-  padding: 10px 20px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
 }
 
 .btn-cancel {
-  background-color: #9e9e9e;
+  background-color: #64748b;
   color: white;
-  padding: 10px 20px;
-  margin-right: 10px;
+  padding: 12px 24px;
+  margin-right: 12px;
+  border-radius: 8px;
+  font-weight: 500;
 }
 
 /* Estilos para formularios comunes */
 .form-section {
   background-color: white;
-  padding: 20px;
-  margin-bottom: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  margin-bottom: 24px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
 }
 
 .form-row {
@@ -151,23 +178,33 @@ tr:hover {
 /* Estilos para tarjetas y estadísticas */
 .stat-card {
   background-color: white;
-  border-radius: 8px;
-  padding: 15px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
   text-align: center;
+  transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .stat-card h3 {
   margin-top: 0;
-  font-size: 16px;
-  color: #666;
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .stat-card p {
-  font-size: 24px;
-  font-weight: 600;
-  margin: 10px 0 0;
-  color: #333;
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 12px 0 0;
+  color: #1e293b;
 }
 
 /* Estilos para filtros comunes */
@@ -209,3 +246,9 @@ tr:hover {
   color: #c62828;
 }
 
+/* Responsive Design */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+  }
+}

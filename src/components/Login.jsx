@@ -15,7 +15,7 @@ function Login({ onLogin }) {
   useEffect(() => {
     const fetchAlmacenes = async () => {
       try {
-        const response = await axios.get('https://backenddonaciones.onrender.com/api/almacenes');
+        const response = await axios.get('http://localhost:5000/api/almacenes');
         setAlmacenes(response.data);
       } catch (err) {
         console.error('Error al cargar almacenes', err);

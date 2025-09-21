@@ -4,6 +4,10 @@ import '../styles/Almacen.css';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import ModalCambioEspacio from './ModalCambioEspacio';
+import 'leaflet/dist/leaflet.css';
+import 'leaflet-defaulticon-compatibility';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { FaEdit, FaTrash } from 'react-icons/fa'; // Importar íconos de edición y eliminación
 
 
 function Almacenes() {
@@ -16,12 +20,16 @@ function Almacenes() {
   const [estanteFiltro, setEstanteFiltro] = useState('');
   const [idAlmacenSeleccionado, setIdAlmacenSeleccionado] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [nuevoAlmacen, setNuevoAlmacen] = useState({ nombre: '', ubicacion: '' });
+  const [nuevoAlmacen, setNuevoAlmacen] = useState({ nombre: '', ubicacion: '', latitud: null, longitud: null, });
   const [estantesAlmacen, setEstantesAlmacen] = useState([]);
   const [estanteSeleccionado, setEstanteSeleccionado] = useState(null);
   const [espaciosEstante, setEspaciosEstante] = useState([]);
   const [mostrarModalCrear, setMostrarModalCrear] = useState(false);
   const [modalIdDonacion, setModalIdDonacion] = useState(null); // id_donacion_especie para mover
+  const [modalMapaVisible, setModalMapaVisible] = useState(false); // Estado para el modal del mapa
+  const [almacenSeleccionado, setAlmacenSeleccionado] = useState(null); // Almacén seleccionado para ver en el mapa
+
+  const [almacenEditando, setAlmacenEditando] = useState(null);
   const [nuevoEstante, setNuevoEstante] = useState({
     nombre: '',
     cantidad_filas: '',
@@ -209,16 +217,25 @@ const cerrarModal = () => {
   
   
   const handleCrearAlmacen = async () => {
+    const { nombre, ubicacion, latitud, longitud } = nuevoAlmacen;
+
+    if (!nombre || !ubicacion || latitud === null || longitud === null) {
+      alert('Todos los campos son obligatorios, incluyendo la selección de un punto en el mapa.');
+      return;
+    }
+
     try {
       await axios.post('/almacenes', {
-        nombre_almacen: nuevoAlmacen.nombre,
-        ubicacion: nuevoAlmacen.ubicacion
+        nombre_almacen: nombre,
+        ubicacion,
+        latitud,
+        longitud,
       });
-  
+
       // Limpiar campos y cerrar modal
-      setNuevoAlmacen({ nombre: '', ubicacion: '' });
+      setNuevoAlmacen({ nombre: '', ubicacion: '', latitud: null, longitud: null });
       setModalVisible(false);
-  
+
       // Refrescar lista de almacenes
       const res = await axios.get('/almacenes');
       setAlmacenes(res.data);
@@ -226,6 +243,75 @@ const cerrarModal = () => {
       console.error('Error al crear el almacén:', error);
     }
   };
+
+  const handleEditarAlmacen = (almacen) => {
+    setAlmacenEditando(almacen); // Establece el almacén que se está editando
+    setNuevoAlmacen({
+      nombre: almacen.nombre_almacen,
+      ubicacion: almacen.ubicacion,
+      latitud: almacen.latitud,
+      longitud: almacen.longitud,
+    });
+  };
+
+  const handleGuardarEdicion = async () => {
+    try {
+      await axios.put(`/almacenes/${almacenEditando.id_almacen}`, {
+        nombre_almacen: nuevoAlmacen.nombre,
+        ubicacion: nuevoAlmacen.ubicacion,
+        latitud: nuevoAlmacen.latitud,
+        longitud: nuevoAlmacen.longitud,
+      });
+
+      // Actualizar la lista de almacenes
+      const res = await axios.get('/almacenes');
+      setAlmacenes(res.data);
+
+      // Limpiar el estado de edición
+      setAlmacenEditando(null);
+      setNuevoAlmacen({ nombre: '', ubicacion: '', latitud: null, longitud: null });
+    } catch (error) {
+      console.error('Error al actualizar el almacén:', error);
+    }
+  };
+
+  const handleEliminarAlmacen = async (id) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este almacén?')) return;
+
+    try {
+      await axios.delete(`/almacenes/${id}`);
+
+      // Actualizar la lista de almacenes
+      const res = await axios.get('/almacenes');
+      setAlmacenes(res.data);
+    } catch (error) {
+      console.error('Error al eliminar el almacén:', error);
+    }
+  };
+
+  const handleVerMapa = (almacen) => {
+    setAlmacenSeleccionado(almacen);
+    setModalMapaVisible(true);
+  };
+
+  const handleCerrarMapa = () => {
+    setModalMapaVisible(false);
+    setAlmacenSeleccionado(null);
+  };
+  
+
+  const handleMapClick = (e) => {
+    const { lat, lng } = e.latlng;
+    setNuevoAlmacen((prev) => ({ ...prev, latitud: lat, longitud: lng }));
+  };
+
+  const MapClickHandler = () => {
+    useMapEvents({
+      click: handleMapClick,
+    });
+    return null;
+  };
+
   const handleAbrirModalCrearEstante = () => {
     setMostrarModalCrear(true);
   };
@@ -315,6 +401,18 @@ const cerrarModal = () => {
   };
   
 
+  // Update the handleSeleccionarAlmacen function to toggle selection and fix double-click issue
+  const handleSeleccionarAlmacen = (almacen) => {
+    if (idAlmacenSeleccionado === almacen.id_almacen) {
+      setIdAlmacenSeleccionado(null); // Deselect the warehouse
+      setEstantesAlmacen([]); // Clear shelves when deselected
+    } else {
+      setIdAlmacenSeleccionado(almacen.id_almacen);
+      fetchEstantesDeAlmacen(almacen.id_almacen); // Fetch shelves for the selected warehouse
+    }
+  };
+  
+
   return (
       <div className="almacen">
         <h1>Almacenes y Artículos</h1>
@@ -350,72 +448,138 @@ const cerrarModal = () => {
 
 {/* Modal para crear un nuevo almacén */}
 {modalVisible && (
-  <div className="almacen-modal-backdrop">
-    <div className="almacen-modal-content">
-      <h2>Crear Nuevo Almacén</h2>
-      <div className="mb-3">
-        <label htmlFor="nombreAlmacen" className="form-label">Nombre del Almacén</label>
-        <input
-          type="text"
-          id="nombreAlmacen"
-          className="form-control"
-          value={nuevoAlmacen.nombre}
-          onChange={(e) => setNuevoAlmacen({ ...nuevoAlmacen, nombre: e.target.value })}
-        />
-      </div>
-      <div className="mb-3">
-        <label htmlFor="ubicacion" className="form-label">Ubicación</label>
-        <input
-          type="text"
-          id="ubicacion"
-          className="form-control"
-          value={nuevoAlmacen.ubicacion}
-          onChange={(e) => setNuevoAlmacen({ ...nuevoAlmacen, ubicacion: e.target.value })}
-        />
-      </div>
-      <div className="almacen-modal-footer">
-        <button className="almacen-btn-secundary" onClick={() => setModalVisible(false)}>Cerrar</button>
-        <button className="almacen-btn-confirmar" onClick={handleCrearAlmacen}>Crear Almacén</button>
-      </div>
-    </div>
-  </div>
-)}
+        <div className="almacen-modal-backdrop">
+          <div className="almacen-modal-content">
+            <h2>Crear Nuevo Almacén</h2>
+            <div className="mb-3">
+              <label htmlFor="nombreAlmacen" className="form-label">Nombre del Almacén</label>
+              <input
+                type="text"
+                id="nombreAlmacen"
+                className="form-control"
+                value={nuevoAlmacen.nombre}
+                onChange={(e) => setNuevoAlmacen({ ...nuevoAlmacen, nombre: e.target.value })}
+              />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="ubicacion" className="form-label">Ubicación</label>
+              <input
+                type="text"
+                id="ubicacion"
+                className="form-control"
+                value={nuevoAlmacen.ubicacion}
+                onChange={(e) => setNuevoAlmacen({ ...nuevoAlmacen, ubicacion: e.target.value })}
+              />
+            </div>
+            <div className="mb-3">
+              <label>Seleccionar ubicación en el mapa</label>
+              <MapContainer
+                center={[-17.7833, -63.1821]} // Coordenadas de Santa Cruz de la Sierra, Bolivia
+                zoom={12} // Nivel de zoom inicial
+                style={{ height: '400px', width: '100%' }} // Tamaño más grande del mapa
+              >
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                />
+                <MapClickHandler />
+                {nuevoAlmacen.latitud && nuevoAlmacen.longitud && (
+                  <Marker position={[nuevoAlmacen.latitud, nuevoAlmacen.longitud]} />
+                )}
+              </MapContainer>
+              {nuevoAlmacen.latitud && nuevoAlmacen.longitud && (
+                <p>
+                  Latitud: {nuevoAlmacen.latitud}, Longitud: {nuevoAlmacen.longitud}
+                </p>
+              )}
+            </div>
+            <div className="almacen-modal-footer">
+              <button className="almacen-btn-secundary" onClick={() => setModalVisible(false)}>
+                Cerrar
+              </button>
+              <button className="almacen-btn-confirmar" onClick={handleCrearAlmacen}>
+                Crear Almacén
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
           <div className="mb-3">
     <h5>Seleccionar Almacén</h5>
     <div className="row">
       {almacenes.map(almacen => (
         <div className="col-md-4 mb-3" key={almacen.id_almacen}>
-          <div
-            className={`card h-100 text-center ${idAlmacenSeleccionado === almacen.id_almacen ? 'border-primary' : ''}`}
-          >
-            <div className="card-body d-flex flex-column">
-    <i className="fas fa-warehouse fa-3x mb-3 text-secondary"></i>
-    <h5 className="card-title">{almacen.nombre_almacen}</h5>
-    <p className="card-text">{almacen.ubicacion || 'Sin dirección registrada'}</p>
-
-    <button
-      className={`btn mt-auto ${idAlmacenSeleccionado === almacen.id_almacen ? 'btn-primary' : 'btn-outline-primary'}`}
-      onClick={() => {
-        if (idAlmacenSeleccionado === almacen.id_almacen) {
-          setIdAlmacenSeleccionado(null);
-          setAlmacenFiltro('');
-          setEstanteFiltro('');
-        } else {
-          setIdAlmacenSeleccionado(almacen.id_almacen);
-          setAlmacenFiltro(almacen.nombre_almacen);
-        }
-      }}
-    >
-      {idAlmacenSeleccionado === almacen.id_almacen ? 'Seleccionado' : 'Seleccionar'}
-    </button>
-  </div>
-
+          <div className="card h-100 position-relative">
+            <div className="card-body">
+              <button
+                className={`btn btn-sm position-absolute top-0 end-0 ${idAlmacenSeleccionado === almacen.id_almacen ? 'btn-primary text-white' : 'btn-outline-primary'}`}
+                style={{ backgroundColor: idAlmacenSeleccionado === almacen.id_almacen ? 'blue' : 'white', borderRadius: '5px' }}
+                onClick={() => handleSeleccionarAlmacen(almacen)}
+              >
+                Seleccionar
+              </button>
+              <h5 className="card-title">{almacen.nombre_almacen}</h5>
+              <p className="card-text">{almacen.ubicacion || 'Sin ubicación registrada'}</p>
+              <div className="d-flex justify-content-between">
+                <button
+                  className="btn btn-outline-primary"
+                  onClick={() => handleVerMapa(almacen)}
+                >
+                  Ver
+                </button>
+                <button
+                  className="btn btn-outline-primary"
+                  onClick={() => handleEditarAlmacen(almacen)}
+                >
+                  <FaEdit /> Editar
+                </button>
+                <button
+                  className="btn btn-outline-danger"
+                  onClick={() => handleEliminarAlmacen(almacen.id_almacen)}
+                >
+                  <FaTrash /> Eliminar
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       ))}
     </div>
-    {estantesAlmacen.length > 0 && (
+
+    {/* Modal para mostrar el mapa */}
+    {modalMapaVisible && almacenSeleccionado && (
+  <div className="almacen-modal-backdrop">
+    <div className="almacen-modal-content">
+      <h2>Ubicación del Almacén</h2>
+      {almacenSeleccionado.latitud && almacenSeleccionado.longitud ? (
+        <MapContainer
+          center={[almacenSeleccionado.latitud, almacenSeleccionado.longitud]}
+          zoom={15}
+          style={{ height: '400px', width: '100%' }}
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          />
+          <Marker
+            position={[almacenSeleccionado.latitud, almacenSeleccionado.longitud]}
+          />
+        </MapContainer>
+      ) : (
+        <p className="text-center text-muted">Este almacén no tiene una ubicación registrada para mostrar en el mapa.</p>
+      )}
+      <div className="almacen-modal-footer">
+        <button className="btn btn-secondary" onClick={handleCerrarMapa}>
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+    
+    {idAlmacenSeleccionado && (
   <div className="mt-4">
     <div className="d-flex justify-content-between align-items-center mb-2">
       <h4>Estantes del almacén seleccionado</h4>
@@ -430,25 +594,27 @@ const cerrarModal = () => {
         )}
       </div>
     </div>
-    <div className="row">
-      {estantesAlmacen.map(estante => (
-        <div className="col-md-3 mb-3" key={estante.id_estante}>
-          <div
-            className={`card text-center ${estanteSeleccionado?.id_estante === estante.id_estante ? 'border-primary' : ''}`}
-            onClick={() => handleSeleccionarEstante(estante)}
-            style={{ cursor: 'pointer' }}
-          >
-            <div className="card-body d-flex flex-column align-items-center">
-              <i className="fas fa-table fa-3x mb-3 text-secondary"></i> {/* ícono de estante */}
-                <h5 className="card-title">{estante.nombre}</h5>
-              <p className="card-text small text-muted mt-2">
-                {estante.cantidad_filas} filas x {estante.cantidad_columnas} columnas
-              </p>
+    {estantesAlmacen.length > 0 && (
+      <div className="row">
+        {estantesAlmacen.map(estante => (
+          <div className="col-md-3 mb-3" key={estante.id_estante}>
+            <div
+              className={`card text-center ${estanteSeleccionado?.id_estante === estante.id_estante ? 'border-primary' : ''}`}
+              onClick={() => handleSeleccionarEstante(estante)}
+              style={{ cursor: 'pointer' }}
+            >
+              <div className="card-body d-flex flex-column align-items-center">
+                <i className="fas fa-table fa-3x mb-3 text-secondary"></i> {/* ícono de estante */}
+                  <h5 className="card-title">{estante.nombre}</h5>
+                <p className="card-text small text-muted mt-2">
+                  {estante.cantidad_filas} filas x {estante.cantidad_columnas} columnas
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    )}
   </div>
 )}
 
@@ -579,6 +745,76 @@ const cerrarModal = () => {
           <button className="btn btn-secondary" onClick={handleCerrarModalCrearEstante}>Cancelar</button>
           <button className="btn btn-primary" onClick={handleCrearEstante}>Crear</button>
         </div>
+      </div>
+    </div>
+  </div>
+)}
+
+{/* Modal para editar el almacén */}
+{almacenEditando && (
+  <div className="almacen-modal-backdrop">
+    <div className="almacen-modal-content" style={{ maxWidth: '800px' }}> {/* Aumentar el ancho del modal */}
+      <h2>Editar Almacén</h2>
+      <div className="mb-3">
+        <label className="form-label">Nombre del Almacén</label>
+        <input
+          type="text"
+          className="form-control"
+          value={nuevoAlmacen.nombre}
+          onChange={(e) =>
+            setNuevoAlmacen({ ...nuevoAlmacen, nombre: e.target.value })
+          }
+        />
+      </div>
+      <div className="mb-3">
+        <label className="form-label">Ubicación</label>
+        <input
+          type="text"
+          className="form-control"
+          value={nuevoAlmacen.ubicacion}
+          onChange={(e) =>
+            setNuevoAlmacen({ ...nuevoAlmacen, ubicacion: e.target.value })
+          }
+        />
+      </div>
+      <div className="mb-3">
+        <label>Seleccionar ubicación en el mapa</label>
+        <MapContainer
+          center={[
+            nuevoAlmacen.latitud || -17.7833,
+            nuevoAlmacen.longitud || -63.1821,
+          ]}
+          zoom={12}
+          style={{ height: '400px', width: '100%' }}
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          />
+          <MapClickHandler />
+          {nuevoAlmacen.latitud && nuevoAlmacen.longitud && (
+            <Marker position={[nuevoAlmacen.latitud, nuevoAlmacen.longitud]} />
+          )}
+        </MapContainer>
+        {nuevoAlmacen.latitud && nuevoAlmacen.longitud && (
+          <p>
+            Latitud: {nuevoAlmacen.latitud}, Longitud: {nuevoAlmacen.longitud}
+          </p>
+        )}
+      </div>
+      <div className="d-flex justify-content-between">
+        <button
+          className="btn btn-success"
+          onClick={handleGuardarEdicion}
+        >
+          Guardar
+        </button>
+        <button
+          className="btn btn-secondary"
+          onClick={() => setAlmacenEditando(null)}
+        >
+          Cancelar
+        </button>
       </div>
     </div>
   </div>
