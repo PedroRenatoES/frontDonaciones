@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Modal from 'react-modal';
 import '../styles/AddDonation.css';
 import axios from '../axios';
-import { useEffect } from 'react';
 import DonorFormModal from '../components/DonorFormModal';
 import DonacionDineroForm from '../components/DonacionDineroForm';
 import DonacionEspecieForm from '../components/DonacionEspecieForm';
 import Select from 'react-select';
+import CampanaModal from '../components/CampanaModal';
 
 
 Modal.setAppElement('#root');
@@ -14,10 +14,6 @@ Modal.setAppElement('#root');
 
 function AddDonation() {
   const [tipoDonacion, setTipoDonacion] = useState('');
-  const [donacionId, setDonacionId] = useState(null);
-  const [campañas, setCampañas] = useState([]);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [donorModalOpen, setDonorModalOpen] = useState(false);
   const [donantes, setDonantes] = useState([]);
   const [articulos, setArticulos] = useState([]);
   const [espacios, setEspacios] = useState([]);
@@ -52,7 +48,8 @@ useEffect(() => {
     }
   };
 
-  const fetchCampañas = async () => {
+  // Mover la definición de fetchCampañas al inicio del componente
+const fetchCampañas = async () => {
     try {
       const res = await axios.get('/campanas');
       setCampañas(res.data);
@@ -61,7 +58,7 @@ useEffect(() => {
     }
   };
 
-const fetchExtras = async () => {
+  const fetchExtras = async () => {
     try {
       const [articulosRes, espaciosRes, almacenesRes] = await Promise.all([
         axios.get('/catalogo'),
@@ -179,146 +176,165 @@ const handleSubmit = async () => {
   }
 };
 
+  // Definición de las variables y funciones faltantes
+const [campanaModalOpen, setCampanaModalOpen] = useState(false);
+const [donorModalOpen, setDonorModalOpen] = useState(false);
+const [campañas, setCampañas] = useState([]);
+
   return (
-<div className="add-donation">
-  <h1>Agregar Nueva Donación</h1>
-  <div className="donation-form">
-    {/* FORMULARIO BASE */}
-    <div className="form-group">
-      <label>Tipo de Donación</label>
-      <select name="tipo_donacion" onChange={handleBaseChange}>
-        <option value="">Selecciona</option>
-        <option value="Dinero">Dinero</option>
-        <option value="especie">Especie</option>
-      </select>
-    </div>
-    
-<div className="form-group">
-  <label>Donante</label>
-  <Select
-    options={donantes.map(d => ({
-      value: d.id_donante,
-      label: `${d.nombres} ${d.apellido_paterno || ''}`
-    }))}
-    onChange={(selected) => {
-      setFormData(prev => ({
-        ...prev,
-        id_donante: selected?.value || '',
-        nombre_donante: selected?.label || ''
-      }));
-    }}
-    value={
-      formData.id_donante
-        ? {
-            value: formData.id_donante,
-            label: formData.nombre_donante
-          }
-        : null
-    }
-    placeholder="Buscar donante por nombre"
-    isClearable
-  />
+    <div className="add-donation">
+      <h1>Agregar Nueva Donación</h1>
+      <div className="donation-form">
+        {/* FORMULARIO BASE */}
+        <div className="form-group">
+          <label>Tipo de Donación</label>
+          <select name="tipo_donacion" onChange={handleBaseChange}>
+            <option value="">Selecciona</option>
+            <option value="Dinero">Dinero</option>
+            <option value="especie">Especie</option>
+          </select>
+        </div>
 
-  <button
-    type="button"
-    className="btn-add-donor"
-    onClick={() => {
-      setDonorFormData({
-        nombres: '',
-        apellido_paterno: '',
-        apellido_materno: '',
-        correo: '',
-        telefono: '',
-        usuario: '',
-        contraseña_hash: '',
-      });
-      setEditMode(false);
-      setDonorModalOpen(true);
-    }}
-  >
-    + Agregar Donante
-  </button>
-</div>
+        <div className="form-group">
+          <label>Donante</label>
+          <Select
+            options={donantes.map(d => ({
+              value: d.id_donante,
+              label: `${d.nombres} ${d.apellido_paterno || ''}`
+            }))}
+            onChange={(selected) => {
+              setFormData(prev => ({
+                ...prev,
+                id_donante: selected?.value || '',
+                nombre_donante: selected?.label || ''
+              }));
+            }}
+            value={
+              formData.id_donante
+                ? {
+                    value: formData.id_donante,
+                    label: formData.nombre_donante
+                  }
+                : null
+            }
+            placeholder="Buscar donante por nombre"
+            isClearable
+          />
 
-<div className="form-group">
-  <label>Campaña</label>
-  <Select
-    options={campañas.map(c => ({
-      value: c.id_campana,
-      label: c.nombre_campana
-    }))}
-    onChange={(selected) => {
-      setFormData(prev => ({
-        ...prev,
-        id_campana: selected?.value || '',
-        nombre_campana: selected?.label || ''
-      }));
-    }}
-    value={
-      formData.id_campana
-        ? {
-            value: formData.id_campana,
-            label: formData.nombre_campana
-          }
-        : null
-    }
-    placeholder="Buscar campaña por nombre"
-    isClearable
-  />
-</div>
+          <button
+            type="button"
+            className="btn-add-donor"
+            onClick={() => {
+              setDonorFormData({
+                nombres: '',
+                apellido_paterno: '',
+                apellido_materno: '',
+                correo: '',
+                telefono: '',
+                usuario: '',
+                contraseña_hash: '',
+              });
+              setEditMode(false);
+              setDonorModalOpen(true);
+            }}
+          >
+            + Agregar Donante
+          </button>
+        </div>
 
+        <div className="form-group">
+          <label>Campaña</label>
+          <Select
+            options={campañas.map(c => ({
+              value: c.id_campana,
+              label: c.nombre_campana
+            }))}
+            onChange={(selected) => {
+              setFormData(prev => ({
+                ...prev,
+                id_campana: selected?.value || '',
+                nombre_campana: selected?.label || ''
+              }));
+            }}
+            value={
+              formData.id_campana
+                ? {
+                    value: formData.id_campana,
+                    label: formData.nombre_campana
+                  }
+                : null
+            }
+            placeholder="Buscar campaña por nombre"
+            isClearable
+          />
 
+          <button
+            type="button"
+            className="btn-add-campaign"
+            onClick={() => setCampanaModalOpen(true)}
+          >
+            + Crear Campaña
+          </button>
+        </div>
 
-<div className="form-group">
-  <label>Fecha</label>
-    <input
-      type="date"
-      name="fecha_donacion"
-      value={formData.fecha_donacion}
-      readOnly
-    />
-</div>
-
-    </div>
+        <div className="form-group">
+          <label>Fecha</label>
+          <input
+            type="date"
+            name="fecha_donacion"
+            value={formData.fecha_donacion}
+            readOnly
+          />
+        </div>
+      </div>
       
-  {/* FORMULARIO ESPECÍFICO */}
-  {tipoDonacion && (  
-    <div className="specific-donation-form">
-      {tipoDonacion === 'Dinero' ? (
-      <DonacionDineroForm
-        data={dineroData}
-        setData={setDineroData}
-        nombresCuenta={nombresCuenta} // array de strings
-        numerosCuenta={numerosCuenta} // array de strings
-      />
-      ) : (
-        <DonacionEspecieForm
-          data={especieData}
-          setData={setEspecieData}
-          articulos={articulos}
-          espacios={espacios}
-          almacenes={almacenes}
-        />
+      {/* FORMULARIO ESPECÍFICO */}
+      {tipoDonacion && (  
+        <div className="specific-donation-form">
+          {tipoDonacion === 'Dinero' ? (
+          <DonacionDineroForm
+            data={dineroData}
+            setData={setDineroData}
+            nombresCuenta={nombresCuenta} // array de strings
+            numerosCuenta={numerosCuenta} // array de strings
+          />
+          ) : (
+            <DonacionEspecieForm
+              data={especieData}
+              setData={setEspecieData}
+              articulos={articulos}
+              espacios={espacios}
+              almacenes={almacenes}
+            />
+          )}
+        </div>
       )}
+      
+      {/* BOTÓN FINAL */}
+      <button className="submit-btn" onClick={handleSubmit}>
+        Guardar Donación
+      </button>
+
+      {/* MODAL DONANTE */}
+      <DonorFormModal
+        isOpen={donorModalOpen}
+        onClose={() => setDonorModalOpen(false)}
+        onSubmit={handleCreateDonor}
+        formData={donorFormData}
+        setFormData={setDonorFormData}
+        editMode={editMode}
+      />
+
+      {/* MODAL CAMPAÑA */}
+      <CampanaModal
+        show={campanaModalOpen}
+        onClose={() => setCampanaModalOpen(false)}
+        onCreated={() => {
+          setCampanaModalOpen(false);
+          fetchCampañas();
+        }}
+      />
     </div>
-  )}
-  
-  {/* BOTÓN FINAL */}
-  <button className="submit-btn" onClick={handleSubmit}>
-    Guardar Donación
-  </button>
-
-  {/* MODAL DONANTE */}
-  <DonorFormModal
-    isOpen={donorModalOpen}
-    onClose={() => setDonorModalOpen(false)}
-    onSubmit={handleCreateDonor}
-    formData={donorFormData}
-    setFormData={setDonorFormData}
-    editMode={editMode}
-  />
-</div>
-
   );
 }
 

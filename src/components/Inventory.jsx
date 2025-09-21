@@ -14,6 +14,13 @@ function Inventory() {
   const [articuloSeleccionado, setArticuloSeleccionado] = useState(null);
   const [modalDineroAbierto, setModalDineroAbierto] = useState(false);
   const [almacenes, setAlmacenes] = useState([]); // Estado para la lista de almacenes
+  const [modalBusquedaAbierto, setModalBusquedaAbierto] = useState(false); // Define the missing state for modal visibility
+  const [tipoBusqueda, setTipoBusqueda] = useState('nombreArticulo'); // Default to article name search
+  const [valorBusqueda, setValorBusqueda] = useState('');
+  const [resultadosBusqueda, setResultadosBusqueda] = useState([]); // Restore the missing state for search results
+  const [donacionSeleccionada, setDonacionSeleccionada] = useState(null); // Add state for selected donation details
+  const [modalEditarAbierto, setModalEditarAbierto] = useState(false);
+  const [donacionEditando, setDonacionEditando] = useState(null);
 
   useEffect(() => {
     const fetchAlmacenes = async () => {
@@ -73,7 +80,6 @@ function Inventory() {
 
   // ✅ Animación del contador
   useEffect(() => {
-    let start = 0;
     const end = parseFloat(montoTotalDinero);
     if (isNaN(end)) return;
 
@@ -126,6 +132,77 @@ function Inventory() {
     setModalAbierto(true);
   };
 
+  const abrirModalBusqueda = () => setModalBusquedaAbierto(true);
+  const cerrarModalBusqueda = () => {
+    setModalBusquedaAbierto(false);
+    setResultadosBusqueda([]);
+  };
+
+  // Update search functionality to use the new endpoint
+  const handleBuscar = async () => {
+    try {
+      const response = await axios.get(`/inventario/donaciones/por-almacen?idAlmacen=1`);
+      const data = response.data;
+
+      const resultados = data.filter((item) => {
+        if (tipoBusqueda === 'nombreArticulo') {
+          return item.nombre_articulo.toLowerCase().includes(valorBusqueda.toLowerCase());
+        } else if (tipoBusqueda === 'nombreDonante') {
+          return item.nombre_donante.toLowerCase().includes(valorBusqueda.toLowerCase());
+        }
+        return false;
+      });
+
+      setResultadosBusqueda(resultados);
+    } catch (error) {
+      console.error('Error al buscar donaciones:', error);
+      setResultadosBusqueda([]);
+    }
+  };
+
+  const handleVerDetalles = (donacion) => {
+    setDonacionSeleccionada(donacion);
+  };
+
+  const abrirModalEditar = (donacion) => {
+    setDonacionEditando(donacion);
+    setModalEditarAbierto(true);
+  };
+
+  const cerrarModalEditar = () => {
+    setDonacionEditando(null);
+    setModalEditarAbierto(false);
+  };
+
+  const handleGuardarEdicion = async () => {
+    try {
+      // Update base donation
+      await axios.put(`/donaciones/${donacionEditando.id_donacion}`, {
+        cantidad: donacionEditando.cantidad,
+        fecha_vencimiento: donacionEditando.fecha_vencimiento,
+      });
+
+      // Update specific donation type
+      if (donacionEditando.tipo === 'Dinero') {
+        await axios.put(`/donaciones-en-dinero/${donacionEditando.id_donacion}`, {
+          monto: donacionEditando.monto,
+          divisa: donacionEditando.divisa,
+        });
+      } else if (donacionEditando.tipo === 'Especie') {
+        await axios.put(`/donaciones-en-especie/${donacionEditando.id_donacion}`, {
+          id_articulo: donacionEditando.id_articulo,
+          id_espacio: donacionEditando.id_espacio,
+        });
+      }
+
+      alert('Donación actualizada con éxito');
+      cerrarModalEditar();
+    } catch (error) {
+      console.error('Error al actualizar la donación:', error);
+      alert('No se pudo actualizar la donación');
+    }
+  };
+
   return (
     <div className="inventory">
       <h1 className='inventory-title'>Inventario de Donaciones</h1>
@@ -160,7 +237,165 @@ function Inventory() {
             </button>
           </div>
         </div>
+
+        {/* Search Button */}
+        <div className="search-wrapper" style={{ textAlign: 'right', marginBottom: '1rem' }}>
+          <button
+            className="btn-search"
+            onClick={abrirModalBusqueda}
+            style={{ padding: '0.5rem 1rem', borderRadius: '5px', backgroundColor: '#007bff', color: 'white', border: 'none' }}
+          >
+            Buscar
+          </button>
+        </div>
       </div>
+
+      {/* Search Modal */}
+      {modalBusquedaAbierto && (
+        <div className="modal-backdrop">
+          <div className="modal-content" style={{ padding: '1rem', borderRadius: '5px', backgroundColor: 'white', maxWidth: '600px', margin: '2rem auto' }}>
+            <h4>Búsqueda Avanzada</h4>
+            <div className="search-filters" style={{ marginBottom: '1rem' }}>
+              <div>
+                <label>Buscar por:</label>
+                <select
+                  value={tipoBusqueda}
+                  onChange={(e) => setTipoBusqueda(e.target.value)}
+                  style={{ marginBottom: '0.5rem', padding: '0.5rem', borderRadius: '5px', border: '1px solid #ccc', width: '100%' }}
+                >
+                  <option value="nombreArticulo">Nombre del Artículo</option>
+                  <option value="nombreDonante">Nombre del Donante</option>
+                </select>
+              </div>
+              <div>
+                <label>Valor de Búsqueda:</label>
+                <input
+                  type="text"
+                  value={valorBusqueda}
+                  onChange={(e) => setValorBusqueda(e.target.value)}
+                  style={{ marginBottom: '0.5rem', padding: '0.5rem', borderRadius: '5px', border: '1px solid #ccc', width: '100%' }}
+                />
+              </div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <button
+                className="btn-search"
+                onClick={handleBuscar}
+                style={{ marginRight: '0.5rem', padding: '0.5rem 1rem', borderRadius: '5px', backgroundColor: '#007bff', color: 'white', border: 'none' }}
+              >
+                Buscar
+              </button>
+              <button
+                className="btn-close"
+                onClick={cerrarModalBusqueda}
+                style={{ padding: '0.5rem 1rem', borderRadius: '5px', backgroundColor: '#ccc', color: 'black', border: 'none' }}
+              >
+                Cerrar
+              </button>
+            </div>
+
+            {/* Search Results */}
+            {resultadosBusqueda.length > 0 && (
+              <div className="search-results" style={{ marginTop: '1rem' }}>
+                <h5>Resultados de la Búsqueda</h5>
+                <ul>
+                  {resultadosBusqueda.map((resultado, idx) => (
+                    <li key={idx} style={{ marginBottom: '0.5rem' }}>
+                      <strong>Artículo:</strong> {resultado.nombre_articulo}, <strong>Donante:</strong> {resultado.nombre_donante || 'N/A'}
+                      <button
+                        className="btn-details"
+                        onClick={() => handleVerDetalles(resultado)}
+                        style={{ marginLeft: '1rem', padding: '0.3rem 0.6rem', borderRadius: '5px', backgroundColor: '#28a745', color: 'white', border: 'none' }}
+                      >
+                        Ver Detalles
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {resultadosBusqueda.length === 0 && (
+              <p style={{ marginTop: '1rem', color: 'red' }}>No se encontraron resultados.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Donation Details Modal */}
+      {donacionSeleccionada && (
+        <div className="modal-backdrop">
+          <div className="modal-content" style={{ padding: '1rem', borderRadius: '5px', backgroundColor: 'white', maxWidth: '600px', margin: '2rem auto' }}>
+            <h4>Detalles de la Donación</h4>
+            <p><strong>Artículo:</strong> {donacionSeleccionada.nombre_articulo}</p>
+            <p><strong>Donante:</strong> {donacionSeleccionada.nombre_donante}</p>
+            <p><strong>Cantidad:</strong> {donacionSeleccionada.cantidad}</p>
+            <p><strong>Espacio:</strong> {donacionSeleccionada.espacio}</p>
+            <p><strong>Estante:</strong> {donacionSeleccionada.estante}</p>
+            <p><strong>Almacén:</strong> {donacionSeleccionada.nombre_almacen}</p>
+            <div style={{ textAlign: 'right' }}>
+              <button
+                className="btn-edit"
+                onClick={() => abrirModalEditar(donacionSeleccionada)}
+                style={{ marginRight: '0.5rem', padding: '0.5rem 1rem', borderRadius: '5px', backgroundColor: '#007bff', color: 'white', border: 'none' }}
+              >
+                Editar
+              </button>
+              <button
+                className="btn-close"
+                onClick={() => setDonacionSeleccionada(null)}
+                style={{ padding: '0.5rem 1rem', borderRadius: '5px', backgroundColor: '#ccc', color: 'black', border: 'none' }}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Donation Modal */}
+      {modalEditarAbierto && donacionEditando && (
+        <div className="modal-backdrop">
+          <div className="modal-content" style={{ padding: '1rem', borderRadius: '5px', backgroundColor: 'white', maxWidth: '600px', margin: '2rem auto' }}>
+            <h4>Editar Donación</h4>
+            <div className="edit-form" style={{ marginBottom: '1rem' }}>
+              <div>
+                <label>Cantidad:</label>
+                <input
+                  type="number"
+                  value={donacionEditando.cantidad}
+                  onChange={(e) => setDonacionEditando({ ...donacionEditando, cantidad: e.target.value })}
+                  style={{ marginBottom: '0.5rem', padding: '0.5rem', borderRadius: '5px', border: '1px solid #ccc', width: '100%' }}
+                />
+              </div>
+              <div>
+                <label>Fecha de Vencimiento:</label>
+                <input
+                  type="date"
+                  value={donacionEditando.fecha_vencimiento || ''}
+                  onChange={(e) => setDonacionEditando({ ...donacionEditando, fecha_vencimiento: e.target.value })}
+                  style={{ marginBottom: '0.5rem', padding: '0.5rem', borderRadius: '5px', border: '1px solid #ccc', width: '100%' }}
+                />
+              </div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <button
+                className="btn-save"
+                onClick={handleGuardarEdicion}
+                style={{ marginRight: '0.5rem', padding: '0.5rem 1rem', borderRadius: '5px', backgroundColor: '#28a745', color: 'white', border: 'none' }}
+              >
+                Guardar
+              </button>
+              <button
+                className="btn-close"
+                onClick={cerrarModalEditar}
+                style={{ padding: '0.5rem 1rem', borderRadius: '5px', backgroundColor: '#ccc', color: 'black', border: 'none' }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <section className="table-section">
         <h4>Donaciones en Especie</h4>
