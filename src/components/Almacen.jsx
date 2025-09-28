@@ -664,7 +664,7 @@ const cerrarModal = () => {
     <th>Unidad</th>
     <th>Cantidad</th>
     <th>Ubicaciones</th>
-    <th>Acciones</th> {/* Nueva columna */}
+    {/* Removed the "Acciones" column */}
   </tr>
 </thead>
 <tbody>
@@ -687,16 +687,12 @@ const cerrarModal = () => {
             ))}
           </ul>
         </td>
-        <td>
-          <button onClick={() => abrirModal(item.id_articulo)}>
-            Cambiar Ubicación
-          </button>
-        </td>
+        {/* Removed the "Acciones" cell */}
       </tr>
     ))
   ) : (
     <tr>
-      <td colSpan="6" className="text-center">No hay artículos disponibles para mostrar</td>
+      <td colSpan="5" className="text-center">No hay artículos disponibles para mostrar</td> {/* Updated colspan to 5 */}
     </tr>
   )}
 </tbody>

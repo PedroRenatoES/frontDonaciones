@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from '../axios';
 import '../styles/Inventory.css';
 import DonorsModal from './DonorsModal';
 import MoneyDonorsModal from './MoneyDonorsModal';
+import ModalCambioEspacio from './ModalCambioEspacio'; // Importé el modal para mover ubicación
 
 function Inventory() {
   const [inventario, setInventario] = useState([]);
@@ -21,6 +22,11 @@ function Inventory() {
   const [donacionSeleccionada, setDonacionSeleccionada] = useState(null); // Add state for selected donation details
   const [modalEditarAbierto, setModalEditarAbierto] = useState(false);
   const [donacionEditando, setDonacionEditando] = useState(null);
+  const [vista, setVista] = useState('general'); // Estado para alternar vistas
+  const [donacionesPorEstante, setDonacionesPorEstante] = useState([]); // Estado para datos de "Ver por Estante"
+  const [mostrarEstantesVacios, setMostrarEstantesVacios] = useState(false); // Estado para controlar si se muestran estantes vacíos
+  const [modalCambioEspacioAbierto, setModalCambioEspacioAbierto] = useState(false); // Estado para el modal de cambio de espacio
+  const [donacionParaMover, setDonacionParaMover] = useState(null); // Estado para la donación seleccionada
 
   useEffect(() => {
     const fetchAlmacenes = async () => {
@@ -201,6 +207,52 @@ function Inventory() {
       console.error('Error al actualizar la donación:', error);
       alert('No se pudo actualizar la donación');
     }
+  };
+
+  const fetchDonacionesPorEstante = useCallback(async () => {
+    try {
+      const nombreAlmacenLS = localStorage.getItem('almacen');
+      if (!nombreAlmacenLS) {
+        console.error('No se encontró el nombre del almacén en localStorage.');
+        return;
+      }
+
+      const almacenUsuario = almacenes.find(alm => alm.nombre_almacen === nombreAlmacenLS);
+      if (!almacenUsuario) {
+        console.error('No se encontró un almacén que coincida con el nombre almacenado.');
+        return;
+      }
+
+      const response = await axios.get(`inventario/donaciones-por-estante/${almacenUsuario.id_almacen}`);
+      setDonacionesPorEstante(response.data);
+    } catch (error) {
+      console.error('Error al obtener las donaciones por estante:', error);
+    }
+  }, [almacenes]);
+
+  useEffect(() => {
+    if (vista === 'porEstante') {
+      fetchDonacionesPorEstante();
+    }
+  }, [vista, fetchDonacionesPorEstante]);
+
+  // Filtrar estantes para mostrar solo aquellos que tienen contenido
+  const estantesConContenido = donacionesPorEstante.filter(estante =>
+    estante.espacios.some(espacio => espacio.donaciones.length > 0)
+  );
+
+  const estantesVacios = donacionesPorEstante.filter(estante =>
+    !estante.espacios.some(espacio => espacio.donaciones.length > 0)
+  );
+
+  const abrirModalCambioEspacio = (donacion) => {
+    setDonacionParaMover(donacion);
+    setModalCambioEspacioAbierto(true);
+  };
+
+  const cerrarModalCambioEspacio = () => {
+    setDonacionParaMover(null);
+    setModalCambioEspacioAbierto(false);
   };
 
   return (
@@ -397,44 +449,151 @@ function Inventory() {
         </div>
       )}
 
-      <section className="table-section">
-        <h4>Donaciones en Especie</h4>
-        <table className="activity-table">
-          <thead>
-            <tr>
-              <th>Artículo</th>
-              <th>Categoría</th>
-              <th>Unidad</th>
-              <th>Cantidad Total</th>
-              <th>Ubicaciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {inventarioFiltrado.map((item) => (
-              <tr key={item.id_articulo}>
-                <td onClick={() => abrirModal(item)} style={{ cursor: 'pointer', color: 'blue' }}>
-                  {item.nombre_articulo}
-                </td>
-                <td>{item.nombre_categoria}</td>
-                <td>{item.nombre_unidad}</td>
-                <td>{item.cantidad_total}</td>
-                <td>
-                  <ul>
-                    {[...new Map(item.ubicaciones.map(u => {
-                      const key = `${u.espacio}-${u.estante}-${u.almacen}`;
-                      return [key, u];
-                    })).values()].map((ubicacion, idx) => (
-                      <li key={idx}>
-                        {ubicacion.espacio} – {ubicacion.estante} – {ubicacion.almacen}
-                      </li>
-                    ))}
-                  </ul>
-                </td>
+      {/* Toggle Button for View Switch */}
+      <div className="view-toggle" style={{ marginBottom: '1rem' }}>
+        <button
+          onClick={() => setVista('general')}
+          style={{
+            padding: '0.5rem 1rem',
+            borderRadius: '5px',
+            backgroundColor: vista === 'general' ? '#007bff' : '#ccc',
+            color: vista === 'general' ? 'white' : 'black',
+            border: 'none',
+            marginRight: '0.5rem'
+          }}
+        >
+          Ver General
+        </button>
+        <button
+          onClick={() => setVista('porEstante')}
+          style={{
+            padding: '0.5rem 1rem',
+            borderRadius: '5px',
+            backgroundColor: vista === 'porEstante' ? '#007bff' : '#ccc',
+            color: vista === 'porEstante' ? 'white' : 'black',
+            border: 'none'
+          }}
+        >
+          Ver por Estante
+        </button>
+      </div>
+
+      {vista === 'general' && (
+        <section className="table-section">
+          <h4>Donaciones en Especie</h4>
+          <table className="activity-table">
+            <thead>
+              <tr>
+                <th>Artículo</th>
+                <th>Categoría</th>
+                <th>Unidad</th>
+                <th>Cantidad Total</th>
+                <th>Ubicaciones</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+            </thead>
+            <tbody>
+              {inventarioFiltrado.map((item) => (
+                <tr key={item.id_articulo}>
+                  <td onClick={() => abrirModal(item)} style={{ cursor: 'pointer', color: 'blue' }}>
+                    {item.nombre_articulo}
+                  </td>
+                  <td>{item.nombre_categoria}</td>
+                  <td>{item.nombre_unidad}</td>
+                  <td>{item.cantidad_total}</td>
+                  <td>
+                    <ul>
+                      {[...new Map(item.ubicaciones.map(u => {
+                        const key = `${u.espacio}-${u.estante}-${u.almacen}`;
+                        return [key, u];
+                      })).values()].map((ubicacion, idx) => (
+                        <li key={idx}>
+                          {ubicacion.espacio} – {ubicacion.estante} – {ubicacion.almacen}
+                        </li>
+                      ))}
+                    </ul>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+
+      {vista === 'porEstante' && (
+        <section className="table-section">
+          <h4>Donaciones por Estante</h4>
+          {estantesConContenido.map((estante) => (
+            <div key={estante.id_estante} style={{ marginBottom: '1rem' }}>
+              <h5>{estante.nombre_estante}</h5>
+              {estante.espacios.map((espacio) => (
+                espacio.donaciones.length > 0 && (
+                  <div key={espacio.id_espacio} style={{ marginLeft: '1rem' }}>
+                    <h6>{espacio.nombre_espacio}</h6>
+                    <table className="activity-table">
+                      <thead>
+                        <tr>
+                          <th>Artículo</th>
+                          <th>Donante</th>
+                          <th>Cantidad Restante</th>
+                          <th>Fecha de Vencimiento</th>
+                          <th>Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {espacio.donaciones.map((donacion) => (
+                          <tr key={donacion.id_donacion}>
+                            <td>{donacion.nombre_articulo}</td>
+                            <td>{donacion.nombre_donante}</td>
+                            <td>{donacion.cantidad_restante}</td>
+                            <td>{donacion.fecha_vencimiento ? new Date(donacion.fecha_vencimiento).toLocaleDateString() : 'N/A'}</td>
+                            <td>
+                              <button
+                                onClick={() => abrirModalCambioEspacio(donacion)}
+                                style={{
+                                  padding: '0.3rem 0.6rem',
+                                  borderRadius: '5px',
+                                  backgroundColor: '#007bff',
+                                  color: 'white',
+                                  border: 'none',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Mover Ubicación
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )
+              ))}
+            </div>
+          ))}
+
+          {mostrarEstantesVacios && estantesVacios.map((estante) => (
+            <div key={estante.id_estante} style={{ marginBottom: '1rem' }}>
+              <h5>{estante.nombre_estante} (Vacío)</h5>
+            </div>
+          ))}
+
+          {!mostrarEstantesVacios && estantesVacios.length > 0 && (
+            <button
+              onClick={() => setMostrarEstantesVacios(true)}
+              style={{
+                marginTop: '1rem',
+                padding: '0.5rem 1rem',
+                borderRadius: '5px',
+                backgroundColor: '#007bff',
+                color: 'white',
+                border: 'none'
+              }}
+            >
+              Mostrar Estantes Vacíos
+            </button>
+          )}
+        </section>
+      )}
 
       <section className="table-section">
         <h4>Donaciones en Dinero (Cuenta)</h4>
@@ -465,6 +624,17 @@ function Inventory() {
         isOpen={modalDineroAbierto}
         onClose={() => setModalDineroAbierto(false)}
       />
+
+      {modalCambioEspacioAbierto && (
+        <ModalCambioEspacio
+          idDonacion={donacionParaMover?.id_donacion}
+          onClose={cerrarModalCambioEspacio}
+          onSuccess={() => {
+            cerrarModalCambioEspacio();
+            // Aquí puedes agregar lógica para refrescar los datos si es necesario
+          }}
+        />
+      )}
     </div>
   );
 }
