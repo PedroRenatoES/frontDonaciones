@@ -10,6 +10,8 @@ import { faHome, faChartBar, faBox, faPlus, faUser, faUsers, faTruck, faHistory,
 function Sidebar({ onLogout }) {
   const usuario = JSON.parse(localStorage.getItem('usuario'));
   const esAdmin = usuario?.rol === 1;
+  const esVoluntario = usuario?.rol === 2;
+  const esAlmacenista = usuario?.rol === 3;
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
 
   const confirmarLogout = () => {
@@ -21,47 +23,57 @@ function Sidebar({ onLogout }) {
     <div className="sidebar">
       <nav>
         <ul className="sidebar-options">
-          
           <li className="card-option">
             <NavLink to="/dashboard"><FontAwesomeIcon icon={faChartBar} /> Estadísticas</NavLink>
           </li>
-          <li className="card-option">
-            <NavLink to="/inventory"><FontAwesomeIcon icon={faBox} /> Inventario</NavLink>
-          </li>
-          <li className="card-option">
-            <NavLink to="/add-donation"><FontAwesomeIcon icon={faPlus} /> Agregar</NavLink>
-          </li>
-          <li className="card-option">
-            <NavLink to="/donors"><FontAwesomeIcon icon={faUser} /> Donantes</NavLink>
-          </li>
+          {(esVoluntario || esAlmacenista || esAdmin) && (
+            <li className="card-option">
+              <NavLink to="/inventory"><FontAwesomeIcon icon={faBox} /> Inventario</NavLink>
+            </li>
+          )}
+          {(esVoluntario || esAlmacenista || esAdmin) && (
+            <li className="card-option">
+              <NavLink to="/add-donation"><FontAwesomeIcon icon={faPlus} /> Agregar</NavLink>
+            </li>
+          )}
           {esAdmin && (
             <li className="card-option">
               <NavLink to="/users"><FontAwesomeIcon icon={faUsers} /> Usuarios</NavLink>
             </li>
           )}
-
-          <li className="card-option">
-            <NavLink to="/history"><FontAwesomeIcon icon={faHistory} /> Historial</NavLink>
-          </li>
-          <li className="card-option">
-            <NavLink to="/campains"><FontAwesomeIcon icon={faBullhorn} /> Campañas</NavLink>
-          </li>
-          <li className="card-option">
-            <NavLink to="/almacenes"><FontAwesomeIcon icon={faWarehouse} /> Almacenes</NavLink>
-          </li>
-          <li className="card-option">
-            <NavLink to="/help-request"><FontAwesomeIcon icon={faTruck} /> Solicitudes</NavLink>
-          </li>
-          <li className="card-option">
-            <NavLink to="/salidas"><FontAwesomeIcon icon={faTruckFast} /> Salidas</NavLink>
-          </li>
-
-
+          {esAdmin && (
+            <li className="card-option">
+              <NavLink to="/donors"><FontAwesomeIcon icon={faUser} /> Donantes</NavLink>
+            </li>
+          )}
+          {esAdmin && (
+            <li className="card-option">
+              <NavLink to="/history"><FontAwesomeIcon icon={faHistory} /> Historial</NavLink>
+            </li>
+          )}
+          {esAdmin && (
+            <li className="card-option">
+              <NavLink to="/campains"><FontAwesomeIcon icon={faBullhorn} /> Campañas</NavLink>
+            </li>
+          )}
+          {esAdmin && (
+            <li className="card-option">
+              <NavLink to="/almacenes"><FontAwesomeIcon icon={faWarehouse} /> Almacenes</NavLink>
+            </li>
+          )}
+          {(esAlmacenista || esAdmin) && (
+            <li className="card-option">
+              <NavLink to="/help-request"><FontAwesomeIcon icon={faTruck} /> Solicitudes</NavLink>
+            </li>
+          )}
+          {(esAlmacenista || esAdmin) && (
+            <li className="card-option">
+              <NavLink to="/salidas"><FontAwesomeIcon icon={faTruckFast} /> Salidas</NavLink>
+            </li>
+          )}
         </ul>
       </nav>
 
-
-      
       {mostrarConfirmacion && (
         <div className="logout-modal">
           <div className="logout-modal-content">

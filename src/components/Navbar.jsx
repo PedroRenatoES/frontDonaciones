@@ -11,7 +11,8 @@ function Navbar({ usuario, onLogout }) {
   const getRolNombre = (rol) => {
     switch (rol) {
       case 1: return 'Administrador';
-      case 2: return 'Usuario';
+      case 2: return 'Voluntario';
+      case 3: return 'Almacenista';
       default: return 'Desconocido';
     }
   };
@@ -41,11 +42,28 @@ function Navbar({ usuario, onLogout }) {
 
   // Cargar notificaciones (misma lógica que WelcomePage)
   useEffect(() => {
-    axios.get('http://localhost:5000/api/inventario/ubicaciones')
-      .then(response => {
+    const fetchNotificaciones = async () => {
+      try {
+        const nombreAlmacenLS = localStorage.getItem('almacen');
+
+        if (!nombreAlmacenLS) {
+          console.error('No se encontró el nombre del almacén en localStorage.');
+          return;
+        }
+
+        const almacenUsuario = await axios.get(`/almacenes?nombre=${nombreAlmacenLS}`);
+
+        if (!almacenUsuario.data || almacenUsuario.data.length === 0) {
+          console.error('No se encontró un almacén que coincida con el nombre almacenado.');
+          return;
+        }
+
+        const idAlmacen = almacenUsuario.data[0].id_almacen;
+
+        const response = await axios.get(`http://localhost:5000/api/inventario/ubicaciones?idAlmacen=${idAlmacen}`);
         const inventario = response.data;
         const bajoStock = inventario.filter(item => item.cantidad_total < 20);
-        
+
         const notifs = bajoStock.map((item) => {
           const ubicacion = item.ubicaciones?.[0];
           const ubicacionTexto = ubicacion
@@ -62,8 +80,12 @@ function Navbar({ usuario, onLogout }) {
         });
 
         setNotificaciones(notifs);
-      })
-      .catch(err => console.error('Error obteniendo inventario:', err));
+      } catch (err) {
+        console.error('Error obteniendo inventario:', err);
+      }
+    };
+
+    fetchNotificaciones();
   }, []);
 
   return (

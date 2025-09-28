@@ -7,7 +7,6 @@ function Users() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const [editingUserId, setEditingUserId] = useState(null);
-  const [estadoFiltro, setEstadoFiltro] = useState('');
   const [inactiveUsers, setInactiveUsers] = useState([]);
 
   const [userData, setUserData] = useState({
@@ -20,24 +19,17 @@ function Users() {
     contrasena: '',
     telefono: '',
     id_rol: '',
-    ci: '',
-    foto_ci: '',
-    licencia_conducir: '',
-    foto_licencia: ''
+    estado: 'activo', // Default state set to 'activo'
   });
 
   useEffect(() => {
     fetchUsers();
     fetchInactiveUsers();
-  }, [estadoFiltro]);
+  }, []);
 
   const fetchUsers = async () => {
     try {
-      const params = {};
-      if (estadoFiltro && estadoFiltro !== 'all') {
-        params.estado = estadoFiltro;
-      }
-      const res = await axios.get('/users', { params });
+      const res = await axios.get('/users');
       setUsers(Array.isArray(res.data) ? res.data : res.data.usuarios || []);
     } catch (error) {
       console.error('Error al obtener usuarios:', error);
@@ -70,10 +62,7 @@ function Users() {
       contrasena: '',
       telefono: '',
       id_rol: '',
-      ci: '',
-      foto_ci: '',
-      licencia_conducir: '',
-      foto_licencia: ''
+      estado: 'activo', // Reset state to default
     });
   };
 
@@ -87,6 +76,7 @@ function Users() {
       const payload = {
         ...userData,
         id_rol: parseInt(userData.id_rol),
+        estado: userData.estado === 'activo' ? 1 : 0, // Convert estado to number
       };
 
       await axios.post('/users/', payload);
@@ -137,9 +127,6 @@ function Users() {
       telefono: user.telefono || '',
       id_rol: user.id_rol?.toString() || '',
       ci: user.ci || '',
-      foto_ci: user.foto_ci || '',
-      licencia_conducir: user.licencia_conducir || '',
-      foto_licencia: user.foto_licencia || ''
     });
 
     setEditingUserId(user.id_usuario);
@@ -158,34 +145,11 @@ function Users() {
     }
   };
 
-  const handleRestore = (id) => {
-    const user = inactiveUsers.find(u => u.id_usuario === id);
-    if (!user) return;
-
-    setUserData({
-      nombres: user.nombres || '',
-      apellido_paterno: user.apellido_paterno || '',
-      apellido_materno: user.apellido_materno || '',
-      fecha_nacimiento: user.fecha_nacimiento || '',
-      direccion_domiciliaria: user.direccion_domiciliaria || '',
-      correo: user.correo || '',
-      contrasena: '',
-      telefono: user.telefono || '',
-      id_rol: user.id_rol?.toString() || '',
-      ci: user.ci || '',
-      foto_ci: user.foto_ci || '',
-      licencia_conducir: user.licencia_conducir || '',
-      foto_licencia: user.foto_licencia || ''
-    });
-
-    setEditingUserId(user.id_usuario);
-    setIsModalOpen(true);
-  };
-
   const getRoleName = (idRol) => {
     switch (idRol) {
       case 1: return 'Administrador';
-      case 2: return 'Usuario';
+      case 2: return 'Voluntario';
+      case 3: return 'Almacenista';
       default: return 'Desconocido';
     }
   };

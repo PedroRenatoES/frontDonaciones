@@ -46,11 +46,18 @@ const CustomUserModal = ({
       }
     }
 
+    if (name === 'estado' && value === '') {
+      e.target.value = 'activo'; // Default state set to 'activo'
+    }
+
     setErrors(prev => ({ ...prev, [name]: error }));
     onChange(e);
   };
 
   const getInputClass = (name) => errors[name] ? 'error-input' : '';
+
+  const today = new Date();
+  const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate()).toISOString().split('T')[0];
 
   return (
     <div className="custom-user-modal" onClick={handleOverlayClick}>
@@ -61,16 +68,13 @@ const CustomUserModal = ({
           { label: 'Nombres', name: 'nombres', type: 'text' },
           { label: 'Apellido Paterno', name: 'apellido_paterno', type: 'text' },
           { label: 'Apellido Materno', name: 'apellido_materno', type: 'text' },
-          { label: 'Fecha de Nacimiento', name: 'fecha_nacimiento', type: 'date' },
+          { label: 'Fecha de Nacimiento', name: 'fecha_nacimiento', type: 'date', max: maxDate },
           { label: 'Dirección Domiciliaria', name: 'direccion_domiciliaria', type: 'text' },
           { label: 'Correo Electrónico', name: 'correo', type: 'email' },
           { label: 'Contraseña', name: 'contrasena', type: 'password' },
           { label: 'Teléfono', name: 'telefono', type: 'text' },
           { label: 'CI', name: 'ci', type: 'text' },
-          { label: 'Foto CI (URL o texto)', name: 'foto_ci', type: 'text' },
-          { label: 'Licencia de Conducir', name: 'licencia_conducir', type: 'text' },
-          { label: 'Foto Licencia (URL o texto)', name: 'foto_licencia', type: 'text' },
-        ].map(({ label, name, type }) => (
+        ].map(({ label, name, type, max }) => (
           <div className="form-group" key={name}>
             <label>{label}</label>
             <input
@@ -80,6 +84,7 @@ const CustomUserModal = ({
               onChange={handleChange}
               placeholder={label}
               className={getInputClass(name)}
+              max={max}
             />
             {errors[name] && <small className="error-message">{errors[name]}</small>}
           </div>
@@ -90,7 +95,7 @@ const CustomUserModal = ({
           <input
             type="text"
             name="estado"
-            value="inactivo"
+            value={userData.estado === 1 ? 'activo' : 'inactivo'}
             disabled
           />
         </div>
@@ -100,7 +105,8 @@ const CustomUserModal = ({
           <select name="id_rol" value={userData.id_rol || ''} onChange={onChange}>
             <option value="">Seleccione un rol</option>
             <option value="1">Administrador</option>
-            <option value="2">Usuario</option>
+            <option value="2">Voluntario</option>
+            <option value="3">Almacenista</option>
           </select>
         </div>
 

@@ -12,17 +12,34 @@ function ModalCambioEspacio({ idDonacion, onClose, onSuccess }) {
   const [selectedEspacio, setSelectedEspacio] = useState('');
   const [error, setError] = useState('');
 
+  const usuario = JSON.parse(localStorage.getItem('usuario'));
+  const esAlmacenista = usuario?.rol === 3;
+  const esAdmin = usuario?.rol === 1;
+  const nombreAlmacenLS = localStorage.getItem('almacen'); // Get the almacen name from localStorage
+
   useEffect(() => {
     axios.get('/almacenes')
-      .then(res => setAlmacenes(res.data))
+      .then(res => {
+        console.log('Fetched almacenes:', res.data); // Debugging log
+        if (esAlmacenista) {
+          const almacenUsuario = res.data.find(alm => alm.nombre_almacen === nombreAlmacenLS);
+          if (almacenUsuario) {
+            setAlmacenes([almacenUsuario]);
+            setSelectedAlmacen(almacenUsuario.id_almacen.toString());
+          }
+        } else if (esAdmin) {
+          setAlmacenes(res.data);
+        }
+      })
       .catch(err => console.error('Error cargando almacenes:', err));
-  }, []);
+  }, [esAlmacenista, esAdmin, nombreAlmacenLS]);
 
   useEffect(() => {
     if (selectedAlmacen) {
       axios.get('/estantes')
         .then(res => {
           const filtrados = res.data.filter(est => est.id_almacen === parseInt(selectedAlmacen));
+          console.log('Fetched estantes:', filtrados); // Debugging log
           setEstantes(filtrados);
           setSelectedEstante('');
           setEspacios([]);
@@ -36,6 +53,7 @@ function ModalCambioEspacio({ idDonacion, onClose, onSuccess }) {
       axios.get('/espacios')
         .then(res => {
           const filtrados = res.data.filter(esp => esp.id_estante === parseInt(selectedEstante));
+          console.log('Fetched espacios:', filtrados); // Debugging log
           setEspacios(filtrados);
           setSelectedEspacio('');
         })
@@ -49,7 +67,7 @@ function ModalCambioEspacio({ idDonacion, onClose, onSuccess }) {
       return;
     }
 
-    axios.post('/donaciones-en-especie/espacio', {
+    axios.put('/donaciones-en-especie/espacio', {
       id_donacion_especie: idDonacion,
       id_espacio: parseInt(selectedEspacio),
     })
@@ -70,7 +88,10 @@ function ModalCambioEspacio({ idDonacion, onClose, onSuccess }) {
         <h2>Cambiar Espacio de Donación</h2>
 
         <label>Almacén:</label>
-        <select value={selectedAlmacen} onChange={(e) => setSelectedAlmacen(e.target.value)}>
+        <select
+          value={selectedAlmacen}
+          onChange={(e) => setSelectedAlmacen(e.target.value)}
+        >
           <option value="">Seleccione un almacén</option>
           {almacenes.map(a => (
             <option key={a.id_almacen} value={a.id_almacen}>
@@ -84,7 +105,7 @@ function ModalCambioEspacio({ idDonacion, onClose, onSuccess }) {
           <option value="">Seleccione un estante</option>
           {estantes.map(e => (
             <option key={e.id_estante} value={e.id_estante}>
-              {e.nombre_estante}
+              {e.nombre}
             </option>
           ))}
         </select>
@@ -94,7 +115,7 @@ function ModalCambioEspacio({ idDonacion, onClose, onSuccess }) {
           <option value="">Seleccione un espacio</option>
           {espacios.map(e => (
             <option key={e.id_espacio} value={e.id_espacio}>
-              {e.codigo_espacio}
+              {e.codigo}
             </option>
           ))}
         </select>

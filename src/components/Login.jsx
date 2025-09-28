@@ -48,7 +48,11 @@ function Login({ onLogin }) {
         localStorage.setItem('id', usuario.id);
         localStorage.setItem('cambiarPassword', response.data.cambiarPassword ? 'true' : 'false');
         localStorage.setItem('ci', ci);
-        localStorage.setItem('almacen', almacenSeleccionado); // Guardar nombre del almacén
+        if (usuario.rol === 2) {
+          localStorage.setItem('almacen', 'Almacen Rapido');
+        } else {
+          localStorage.setItem('almacen', almacenSeleccionado);
+        } // Guardar nombre del almacén
 
         setAnimando(true);
         setTimeout(() => {
