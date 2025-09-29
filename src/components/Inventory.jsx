@@ -259,45 +259,66 @@ function Inventory() {
     <div className="inventory">
       <h1 className='inventory-title'>Inventario de Donaciones</h1>
 
-      <div className="inventory-actions">
+      <div className="inventory-unified-container">
+        <div className="inventory-actions">
         <div className="filters">
-          <div>
-            <label>Categoría:</label>
-            <select value={categoriaFiltro} onChange={(e) => setCategoriaFiltro(e.target.value)}>
-              <option value="">Todas</option>
-              {categorias.map((categoria, idx) => (
-                <option key={idx} value={categoria}>{categoria}</option>
-              ))}
-            </select>
-          </div>
-
-          {localStorage.getItem('rol') === '1' && (
-            <div>
-              <label>Almacén:</label>
-              <select value={almacenFiltro} onChange={(e) => setAlmacenFiltro(e.target.value)}>
-                <option value="">Todos</option>
-                {almacenes.map((almacen, idx) => (
-                  <option key={idx} value={almacen.nombre_almacen}>{almacen.nombre_almacen}</option>
+          <div className="filter-group">
+            <label className="filter-label">Categoría</label>
+            <div className="filter-select">
+              <select value={categoriaFiltro} onChange={(e) => setCategoriaFiltro(e.target.value)}>
+                <option value="">Todas las categorías</option>
+                {categorias.map((categoria, idx) => (
+                  <option key={idx} value={categoria}>{categoria}</option>
                 ))}
               </select>
             </div>
+          </div>
+
+          {localStorage.getItem('rol') === '1' && (
+            <div className="filter-group">
+              <label className="filter-label">Almacén</label>
+              <div className="filter-select">
+                <select value={almacenFiltro} onChange={(e) => setAlmacenFiltro(e.target.value)}>
+                  <option value="">Todos los almacenes</option>
+                  {almacenes.map((almacen, idx) => (
+                    <option key={idx} value={almacen.nombre_almacen}>{almacen.nombre_almacen}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
           )}
+          
           <div className="download-wrapper">
-            <label style={{ visibility: 'hidden' }}>Descargar:</label>
             <button className="btn-download" onClick={descargarExcel}>
               📥 Descargar Excel
             </button>
           </div>
+
+          {/* Botones de vista integrados */}
+          <div className="view-controls">
+            <button
+              onClick={() => setVista('general')}
+              className={`view-toggle-btn ${vista === 'general' ? 'active' : ''}`}
+            >
+              Ver General
+            </button>
+            <button
+              onClick={() => setVista('porEstante')}
+              className={`view-toggle-btn ${vista === 'porEstante' ? 'active' : ''}`}
+            >
+              Ver por Estante
+            </button>
+          </div>
         </div>
 
-        {/* Search Button */}
-        <div className="search-wrapper" style={{ textAlign: 'right', marginBottom: '1rem' }}>
+        {/* Botón de búsqueda con icono en el tope derecho */}
+        <div className="search-wrapper">
           <button
-            className="btn-search"
+            className="btn-search-icon"
             onClick={abrirModalBusqueda}
-            style={{ padding: '0.5rem 1rem', borderRadius: '5px', backgroundColor: '#007bff', color: 'white', border: 'none' }}
+            title="Buscar"
           >
-            Buscar
+            🔍
           </button>
         </div>
       </div>
@@ -449,38 +470,10 @@ function Inventory() {
         </div>
       )}
 
-      {/* Toggle Button for View Switch */}
-      <div className="view-toggle" style={{ marginBottom: '1rem' }}>
-        <button
-          onClick={() => setVista('general')}
-          style={{
-            padding: '0.5rem 1rem',
-            borderRadius: '5px',
-            backgroundColor: vista === 'general' ? '#007bff' : '#ccc',
-            color: vista === 'general' ? 'white' : 'black',
-            border: 'none',
-            marginRight: '0.5rem'
-          }}
-        >
-          Ver General
-        </button>
-        <button
-          onClick={() => setVista('porEstante')}
-          style={{
-            padding: '0.5rem 1rem',
-            borderRadius: '5px',
-            backgroundColor: vista === 'porEstante' ? '#007bff' : '#ccc',
-            color: vista === 'porEstante' ? 'white' : 'black',
-            border: 'none'
-          }}
-        >
-          Ver por Estante
-        </button>
-      </div>
 
-      {vista === 'general' && (
-        <section className="table-section">
-          <h4>Donaciones en Especie</h4>
+        {vista === 'general' && (
+          <section className="table-section">
+            <h4>Donaciones en Especie</h4>
           <table className="activity-table">
             <thead>
               <tr>
@@ -507,7 +500,7 @@ function Inventory() {
                         return [key, u];
                       })).values()].map((ubicacion, idx) => (
                         <li key={idx}>
-                          {ubicacion.espacio} – {ubicacion.estante} – {ubicacion.almacen}
+                          {ubicacion.espacio} – {ubicacion.estante}
                         </li>
                       ))}
                     </ul>
@@ -516,10 +509,10 @@ function Inventory() {
               ))}
             </tbody>
           </table>
-        </section>
-      )}
+          </section>
+        )}
 
-      {vista === 'porEstante' && (
+        {vista === 'porEstante' && (
         <section className="table-section">
           <h4>Donaciones por Estante</h4>
           {estantesConContenido.map((estante) => (
@@ -593,9 +586,9 @@ function Inventory() {
             </button>
           )}
         </section>
-      )}
+        )}
 
-      <section className="table-section">
+        <section className="table-section">
         <h4>Donaciones en Dinero (Cuenta)</h4>
         <table className="activity-table">
           <thead>
@@ -612,7 +605,8 @@ function Inventory() {
         <button className="btn-donors" onClick={() => setModalDineroAbierto(true)}>
           Ver Detalle
         </button>
-      </section>
+        </section>
+      </div>
       <DonorsModal
         isOpen={modalAbierto}
         articuloId={articuloSeleccionado?.id_articulo}

@@ -2,58 +2,151 @@
 .users {
     padding: 40px;
     min-height: 100vh;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f8fafc;
+    position: relative;
+    overflow-x: hidden;
 }
 
 .users h1 {
     text-align: center;
-    margin-bottom: 2rem;
-    color: #1f2937;
-    font-size: 2rem;
-    font-weight: bold;
+    margin-bottom: 50px;
+    color: #374151;
+    font-size: 2.8rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    animation: slideInFromTop 0.8s ease-out;
+    position: relative;
+    z-index: 10;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.users-header {
+/* Contenedor unificado de controles */
+.users-controls {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
+    gap: 20px;
+    align-items: flex-end;
     margin-bottom: 30px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+    border-radius: 20px;
+    padding: 24px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    position: relative;
+    z-index: 10;
+    animation: slideInFromTop 0.8s ease-out;
 }
 
-.user-filters {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
+.users-controls input[type="text"] {
+    padding: 12px 16px;
+    border: 2px solid rgba(226, 232, 240, 0.8);
+    border-radius: 12px;
+    font-size: 1rem;
+    height: 48px;
+    flex: 1;
+    max-width: 400px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    color: #374151;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.user-filters select {
-    padding: 8px 12px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 14px;
-    height: 38px;
+.users-controls input[type="text"]:focus {
+    border-color: #3b82f6;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 1);
+}
+
+.users-controls select {
+    padding: 12px 16px;
+    border: 2px solid rgba(226, 232, 240, 0.8);
+    border-radius: 12px;
+    font-size: 1rem;
+    height: 48px;
     width: 100%;
-    max-width: 200px
+    max-width: 200px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    color: #374151;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 16px;
+    padding-right: 48px;
 }
 
-/* Botón Añadir */
-.btn-add-user {
-    background-color: #28a745;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    height: 38px;
+.users-controls select:focus {
+    border-color: #3b82f6;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    transform: translateY(-2px);
+    background-color: rgba(255, 255, 255, 1);
+}
+
+/* Botones de controles */
+.users-controls button {
+    height: 48px;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 1rem;
     border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.users-controls button:not(.btn-add-user) {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.users-controls button:not(.btn-add-user):hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Botón Añadir Usuario */
+.btn-add-user {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
 }
 
 .btn-add-user:hover {
-    background-color: #218838;
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-add-user::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-add-user:hover::before {
+    left: 100%;
 }
 
 /* Botón Reset */
@@ -77,65 +170,202 @@
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    background-color: white;
-    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+    border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     font-size: 0.95rem;
-    margin-top: 20px;
+    margin-bottom: 30px;
+    position: relative;
+    z-index: 10;
+    animation: slideInFromTop 0.8s ease-out;
 }
 
 .users-table th {
-    background-color: #ffefa7;
-    color: #111827;
-    font-weight: 600;
-    padding: 1rem;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
+    color: #1e293b;
+    font-weight: 700;
+    padding: 1.25rem;
     text-align: left;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 2px solid rgba(59, 130, 246, 0.1);
+    font-size: 1rem;
+    letter-spacing: 0.025em;
 }
 
 .users-table td {
-    padding: 1rem;
-    color: #4b5563;
-    border-bottom: 1px solid #f1f1f1;
+    padding: 1.25rem;
+    color: #374151;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
 .users-table tr:nth-child(even) {
-    background-color: #fff8d7;
+    background: rgba(248, 250, 252, 0.3);
 }
 
 .users-table tr:hover {
-    background-color: #eef2ff;
+    background: rgba(59, 130, 246, 0.05);
     cursor: pointer;
+    transform: scale(1.001);
+}
+
+.users-table tr:hover td {
+    color: #1e293b;
+    font-weight: 600;
 }
 
 /* Botones de acción */
 .btn-edit,
-.btn-delete {
-    padding: 6px 12px;
+.btn-delete,
+.btn-reset {
+    padding: 8px 16px;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     margin-right: 8px;
-    font-size: 13px;
+    font-size: 0.875rem;
     cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
 }
 
 .btn-edit {
-    background-color: #218838;
-    color: #000;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
 }
 
 .btn-edit:hover {
-    background-color: #054714;
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .btn-delete {
-    background-color: #dc3545;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     color: white;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
 }
 
 .btn-delete:hover {
-    background-color: #5f0811;
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-reset {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+}
+
+.btn-reset:hover {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+/* Badge de estado */
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-badge.activo {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+.status-badge.inactivo {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(107, 114, 128, 0.2);
+}
+
+/* Título de sección */
+.users h2 {
+    font-size: 1.8rem;
+    color: #374151;
+    font-weight: 700;
+    margin: 40px 0 20px 0;
+    text-align: center;
+    letter-spacing: -0.025em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 10;
+}
+
+/* Animaciones */
+@keyframes slideInFromTop {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .users {
+        padding: 20px;
+    }
+    
+    .users h1 {
+        font-size: 2.2rem;
+        margin-bottom: 30px;
+    }
+    
+    .users-controls {
+        padding: 20px;
+        gap: 16px;
+    }
+    
+    .users-controls input[type="text"],
+    .users-controls select,
+    .users-controls button {
+        height: 44px;
+        font-size: 0.9rem;
+    }
+    
+    .users-table {
+        font-size: 0.85rem;
+        border-radius: 16px;
+    }
+    
+    .users-table th,
+    .users-table td {
+        padding: 12px 8px;
+    }
+    
+    .btn-edit,
+    .btn-delete,
+    .btn-reset {
+        padding: 6px 12px;
+        font-size: 0.75rem;
+        margin-right: 4px;
+    }
 }
 
 /* Modal de Usuario */

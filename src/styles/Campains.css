@@ -1,186 +1,755 @@
-.modal,
-.custom-modal {
-    font-family: 'Segoe UI', sans-serif;
+/* Fondo principal */
+.campains-container {
+    padding: 40px;
+    min-height: 100vh;
+    background: #f8fafc;
+    position: relative;
+    overflow-x: hidden;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.campains-title {
-    text-align: center;
-    margin-bottom: 30px;
-    color: #1f2937;
-    font-size: 2rem;
-    font-weight: bold;
-    margin-bottom: 2rem;
+.campains-container::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
 }
+
+/* Título principal */
+.campains-title {
+    font-size: 2.8rem;
+    margin-bottom: 50px;
+    color: #374151;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    animation: slideInFromTop 0.8s ease-out;
+    position: relative;
+    z-index: 10;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Header con glassmorphism */
 .campains-header {
     display: flex;
     justify-content: center;
-    /* Centra horizontalmente */
-    align-items: center;
-    /* Centra verticalmente */
-    gap: 10px;
-    /* Espacio pequeño entre input y botón */
-    margin-bottom: 30px;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 40px;
     flex-wrap: wrap;
-    /* Que se adapte en pantallas pequeñas */ 
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
+/* Campo de búsqueda moderno */
 .campains-search {
-    width: 250px;
+    width: 300px;
     height: 48px;
-    /* Altura fija */
-    padding: 0 12px;
-    /* Padding horizontal solo */
+    padding: 0 20px;
     font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 6px;
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    border-radius: 16px;
     box-sizing: border-box;
-    /* Para que padding y border no aumenten tamaño */
-    line-height: 48px;
-    /* Centra el texto verticalmente */
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    color: #374151;
+    font-weight: 500;
+    transition: all 0.3s ease;
 }
 
+.campains-search:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.campains-search::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+/* Botón agregar campaña moderno */
 .add-campain-btn {
-    background-color: #28a745;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: white;
     height: 48px;
-    /* Misma altura que input */
-    padding: 0 24px;
-    /* Padding horizontal */
-    border-radius: 6px;
-    font-weight: bold;
+    padding: 0 28px;
+    border-radius: 16px;
+    font-weight: 700;
     cursor: pointer;
     font-size: 14px;
     border: none;
     display: flex;
-    /* Para centrar texto vertical y horizontal */
     align-items: center;
-    /* Centrar verticalmente */
     justify-content: center;
     box-sizing: border-box;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.add-campain-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
 }
 
 .add-campain-btn:hover {
-    background-color: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+}
+
+.add-campain-btn:hover::before {
+    left: 100%;
+}
+
+.modal,
+.custom-modal {
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }  
 
-/*Estilos de los Grids*/
-.campana-card {
-    border: none;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 30px;
-    background: linear-gradient(#fffceb, #ffffff);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
+/* Tablas con glassmorphism y sin líneas divisorias */
 .campain-table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    background-color: white;
-    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     font-size: 0.95rem;
     margin-top: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .campain-table th {
-    background-color: #ffefa7;
-    color: #111827;
-    font-weight: 600;
-    padding: 1rem;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
+    color: #1e293b;
+    font-weight: 700;
+    padding: 1.25rem;
     text-align: left;
-    border-bottom: 1px solid #e5e7eb;
+    border: none;
+    font-size: 1rem;
+    letter-spacing: 0.025em;
 }
 
 .campain-table td {
-    padding: 1rem;
-    color: #4b5563;
-    border-bottom: 1px solid #f1f1f1;
+    padding: 1.25rem;
+    color: #374151;
+    border: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
 .campain-table tr:nth-child(even) {
-    background-color: #fff8d7;
+    background: rgba(248, 250, 252, 0.3);
 }
 
 .campain-table tr:hover {
-    background-color: #eef2ff;
+    background: rgba(59, 130, 246, 0.1);
+    transform: translateX(4px);
     cursor: pointer;
 }
-.campains-container {
-    padding: 40px;
-    min-height: 100vh;
 
-    font-family: 'Segoe UI', sans-serif;
-}
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #fdfdfd;
-    color: #1f2937;
-}
-
-/* Contenedor general: espacio vertical entre tarjetas */
+/* Contenedor general de tarjetas */
 .camp-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 30px;
-    /* Espaciado entre cards */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 32px;
     padding-top: 40px;
     padding-bottom: 40px;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
-/* Card de campaña */
+/* Tarjetas de campaña con glassmorphism */
 .camp-card {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     width: 100%;
-    max-width: 600px;
-    /* Asegura que entren 2 por fila en la mayoría de pantallas */
     display: flex;
     flex-direction: column;
-    margin-bottom: 30px;
-    /* Espacio vertical adicional */
-    box-shadow: 0 4px 24px rgba(255, 208, 0, 0.8);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.camp-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
 }
 
 /* Imagen de la campaña */
 .camp-card-img {
     width: 100%;
-    height: 200px;
+    height: 220px;
     object-fit: cover;
     display: block;
+    border-radius: 24px 24px 0 0;
 }
 
 /* Contenido de la tarjeta */
 .camp-card-content {
-    padding: 20px;
+    padding: 28px;
     text-align: center;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .camp-card-title {
-    margin-top: 10px;
-    margin-bottom: 15px;
-    font-size: 1.3rem;
-    color: #1f2937;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    color: #1e293b;
+    font-weight: 700;
+    letter-spacing: -0.025em;
 }
 
-/* Botón ver/ocultar detalles */
+.camp-card-content p {
+    color: #6b7280;
+    font-weight: 500;
+    margin-bottom: 12px;
+    line-height: 1.6;
+}
+
+.camp-card-content strong {
+    color: #374151;
+    font-weight: 600;
+}
+
+/* Botones modernos */
 .camp-card-btn {
-    padding: 10px 18px;
-    background-color: #3b82f6;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 16px;
     cursor: pointer;
-    font-weight: 600;
-    transition: background-color 0.3s ease;
-    margin-top: 15px;
+    font-weight: 700;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    margin: 8px;
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.camp-card-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
 }
 
 .camp-card-btn:hover {
-    background-color: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+}
+
+.camp-card-btn:hover::before {
+    left: 100%;
+}
+
+/* Sección de donaciones */
+.donaciones-section {
+    margin-top: 24px;
+    padding: 24px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.donaciones-section h3 {
+    color: #1e293b;
+    font-weight: 700;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+/* Lock background scroll when modal is open */
+body.no-scroll {
+    overflow: hidden;
+}
+
+/* Modales con glassmorphism */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2147483000; /* ultra-high, safe */
+    animation: fadeIn 0.3s ease-out;
+}
+
+.modal-content {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    padding: 32px;
+    max-width: 90%;
+    width: 40vw;
+    max-height: 90%;
+    overflow: auto;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    animation: slideInFromTop 0.4s ease-out;
+    position: relative;
+}
+
+.modal-content h2 {
+    color: #1e293b;
+    font-weight: 700;
+    margin-bottom: 24px;
+    text-align: center;
+    font-size: 1.5rem;
+}
+
+/* Botones de modal */
+.modal-close-btn, .modal-add-btn {
+    padding: 12px 24px;
+    border-radius: 16px;
+    font-weight: 700;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 8px;
+}
+
+.modal-close-btn {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+}
+
+.modal-add-btn {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+}
+
+.modal-close-btn:hover, .modal-add-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+}
+
+/* Formularios en modal */
+.modal-content form {
+    margin-top: 24px;
+}
+
+.modal-content label {
+    display: block;
+    margin-bottom: 8px;
+    color: #374151;
+    font-weight: 600;
+}
+
+.modal-content input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    color: #374151;
+    font-weight: 500;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+}
+
+.modal-content input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.modal-content form button {
+    padding: 12px 24px;
+    margin: 8px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+}
+
+.modal-content form button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+}
+
+/* Modal de puntos de recolección mejorado */
+.puntos-recoleccion-modal {
+    width: 50vw;             /* half screen */
+    max-width: 1000px;       /* safe cap */
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #1e293b;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.modal-close-x {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.modal-close-x:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.modal-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.map-container {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.map-container h3 {
+    color: #1e293b;
+    font-weight: 700;
+    margin-bottom: 16px;
+    font-size: 1.1rem;
+}
+
+.recoleccion-map {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.puntos-list-container {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.puntos-list-container h3 {
+    color: #1e293b;
+    font-weight: 700;
+    margin-bottom: 16px;
+    font-size: 1.1rem;
+}
+
+/* Popup de marcadores */
+.marker-popup {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    min-width: 150px;
+}
+
+.marker-popup strong {
+    color: #1e293b;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.marker-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.marker-btn {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.marker-btn.edit {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+}
+
+.marker-btn.delete {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+}
+
+.marker-btn:hover {
+    transform: scale(1.1);
+}
+
+/* Lista de puntos mejorada */
+.puntos-actions-container {
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.punto-action-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+}
+
+.punto-action-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(4px);
+}
+
+.punto-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.punto-name {
+    color: #1e293b;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.punto-coords {
+    color: #6b7280;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.punto-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.punto-btn {
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 12px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.punto-btn.edit {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+}
+
+.punto-btn.delete {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+}
+
+.punto-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.no-puntos {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6b7280;
+}
+
+.no-puntos p {
+    margin: 8px 0;
+    font-weight: 500;
+}
+
+/* Modal footer */
+.modal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive para el modal */
+@media (max-width: 1024px) {
+    .puntos-recoleccion-modal {
+        width: 70vw;           /* a bit wider on tablets */
+    }
+    
+    .modal-content {
+        width: 60vw;
+    }
+}
+
+@media (max-width: 768px) {
+    .modal-body {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .puntos-recoleccion-modal {
+        width: 95vw;          /* full width feel on phones */
+        margin: 10px;
+    }
+    
+    .modal-content {
+        padding: 20px;
+        margin: 20px;
+        width: 95vw;
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .modal-footer button {
+        width: 100%;
+    }
+}
+
+/* Animaciones */
+@keyframes slideInFromTop {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .campains-container {
+        padding: 20px;
+    }
+    
+    .campains-title {
+        font-size: 2.2rem;
+        margin-bottom: 30px;
+    }
+    
+    .campains-header {
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .campains-search {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .camp-container {
+        grid-template-columns: 1fr;
+        gap: 24px;
+        padding-top: 20px;
+        padding-bottom: 20px;
+    }
+    
+    .camp-card-content {
+        padding: 20px;
+    }
+    
+    .camp-card-title {
+        font-size: 1.3rem;
+    }
+    
+    .modal-content {
+        padding: 20px;
+        margin: 20px;
+    }
+    
+    .donaciones-section {
+        padding: 16px;
+    }
 }
 

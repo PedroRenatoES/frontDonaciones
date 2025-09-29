@@ -1,14 +1,37 @@
+/* Fondo principal */
 .almacen {
-    padding: 2rem;
-    font-family: 'Arial', sans-serif;
+    padding: 40px;
+    min-height: 100vh;
+    background: #f8fafc;
+    position: relative;
+    overflow-x: hidden;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+.almacen::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Título principal */
 .almacen h1 {
+    font-size: 2.8rem;
+    margin-bottom: 50px;
+    color: #374151;
     text-align: center;
-    margin-bottom: 2rem;
-    color: #1f2937;
-    font-size: 2rem;
-    font-weight: bold;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    animation: slideInFromTop 0.8s ease-out;
+    position: relative;
+    z-index: 10;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .accordion-title {
@@ -34,170 +57,395 @@ h1 {
     margin-bottom: 1.5rem;
 }
 
-/* Filtros */
+/* Filtros con glassmorphism */
 .form-label {
     font-weight: 600;
-    color: #444;
+    color: #374151;
+    margin-bottom: 8px;
 }
 
 select.form-select {
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    padding: 8px;
-}
-
-/* Tarjetas de almacenes */
-.card {
-    border: 1px solid #ddd;
-    border-radius: 10px;
+    border-radius: 16px;
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    color: #374151;
+    font-weight: 500;
     transition: all 0.3s ease;
 }
 
+select.form-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+/* Tarjetas de almacenes con glassmorphism */
+.card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
 .card:hover {
-    transform: scale(1.02);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-8px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
 }
 
 .card-title {
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 12px;
 }
 
 .card-text {
     font-size: 14px;
-    color: #666;
+    color: #6b7280;
+    font-weight: 500;
+    line-height: 1.6;
 }
 
 /* Botones dentro de la tarjeta */
 .card .btn {
-    border-radius: 6px;
-    padding: 8px 16px;
-    font-weight: 500;
+    border-radius: 12px;
+    padding: 10px 18px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    border: none;
 }
 
-/* Tabla */
-/* Tablas estilizadas como users-table */
-.almacen table {
+.card .btn-outline-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+}
+
+.card .btn-outline-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+}
+
+.card .btn-outline-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+}
+
+.card .btn-outline-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
+}
+
+/* Tabla con glassmorphism y sin líneas divisorias */
+.almacenes-table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    background-color: white;
-    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     font-size: 0.95rem;
     margin-top: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.almacen th {
-    background-color: #ffefa7;
-    color: #111827;
-    font-weight: 600;
-    padding: 1rem;
+.almacenes-table th {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
+    color: #1e293b;
+    font-weight: 700;
+    padding: 1.25rem;
     text-align: left;
-    border-bottom: 1px solid #e5e7eb;
+    border: none;
+    font-size: 1rem;
+    letter-spacing: 0.025em;
 }
 
-.almacen td {
-    padding: 1rem;
-    color: #4b5563;
-    border-bottom: 1px solid #f1f1f1;
+.almacenes-table td {
+    padding: 1.25rem;
+    color: #374151;
+    border: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
-.almacen tr:nth-child(even) {
-    background-color: #fff8d7;
+.almacenes-table tr:nth-child(even) {
+    background: rgba(248, 250, 252, 0.3);
 }
 
-.almacen tr:hover {
-    background-color: #eef2ff;
+.almacenes-table tr:hover {
+    background: rgba(59, 130, 246, 0.1);
+    transform: translateX(4px);
     cursor: pointer;
 }
-/* PDF Button */
-.btn-outline-primary {
+
+/* Lista de ubicaciones sin puntos */
+.almacenes-table ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.almacenes-table li {
+    padding: 4px 0;
+    color: #6b7280;
     font-weight: 500;
-    border-radius: 6px;
-    padding: 10px 20px;
-    transition: 0.2s ease-in-out;
+}
+/* Botones modernos */
+.btn-outline-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white !important;
+    font-weight: 700;
+    border-radius: 16px;
+    padding: 12px 24px;
+    border: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-outline-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
 }
 
 .btn-outline-primary:hover {
-    background-color: #2980b9;
-    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+    color: white !important;
 }
 
+.btn-outline-primary:hover::before {
+    left: 100%;
+}
+
+/* Modales con glassmorphism */
 .almacen-modal-backdrop {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
     z-index: 1050;
     display: flex;
     align-items: center;
     justify-content: center;
+    animation: fadeIn 0.3s ease-out;
 }
 
 .almacen-modal-content {
-    background-color: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     padding: 32px;
     width: 100%;
-    max-width: 310px;
+    max-width: 800px;
     z-index: 1060;
-
+    animation: slideInFromTop 0.4s ease-out;
 }
 
 .almacen-modal-content h2 {
-    font-size: 24px;
-    margin-bottom: 16px;
+    font-size: 1.5rem;
+    margin-bottom: 24px;
+    color: #1e293b;
+    font-weight: 700;
+    text-align: center;
 }
 
 .almacen-modal-footer {
     display: flex;
-    justify-content: flex-start;
-    /* ✅ Esto alinea a la izquierda */
-    gap: 10px;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
 }
 
 .almacen-btn-confirmar {
-    background-color: #28a745;
-    border-color: #28a745;
-    color: #fff;
-    border-radius: 6px;
-    padding: 10px 20px;
-    font-weight: 500;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    padding: 12px 24px;
+    font-weight: 700;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
 }
 
 .almacen-btn-confirmar:hover {
-    background-color: #1e7e34;
-    border-color: #1e7e34;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
 }
 
 .almacen-btn-secundary {
-    background-color: red;
-    border-color: red;
-    color: #fff;
-    border-radius: 6px;
-    padding: 10px 20px;
-    font-weight: 500;
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    padding: 12px 24px;
+    font-weight: 700;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(107, 114, 128, 0.3);
 }
 
 .almacen-btn-secundary:hover {
-    background-color: #72151e;
-    border-color: #72151e;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(107, 114, 128, 0.4);
 }
 
+/* Formularios en modales */
+.almacen-modal-content .form-control {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    color: #374151;
+    font-weight: 500;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+}
+
+.almacen-modal-content .form-control:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+/* Botones de acción */
 .btn-accion {
-    background-color: #007bff;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: white;
     border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
+    padding: 8px 16px;
+    border-radius: 12px;
     cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
 .btn-accion:hover {
-    background-color: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+/* Botones de estantes y espacios */
+.btn-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(107, 114, 128, 0.3);
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(107, 114, 128, 0.4);
+}
+
+/* Animaciones */
+@keyframes slideInFromTop {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .almacen {
+        padding: 20px;
+    }
+    
+    .almacen h1 {
+        font-size: 2.2rem;
+        margin-bottom: 30px;
+    }
+    
+    .almacen-modal-content {
+        padding: 20px;
+        margin: 20px;
+        max-width: 95%;
+    }
+    
+    .card {
+        margin-bottom: 20px;
+    }
+    
+    .almacenes-table th,
+    .almacenes-table td {
+        padding: 1rem;
+        font-size: 0.9rem;
+    }
 }
