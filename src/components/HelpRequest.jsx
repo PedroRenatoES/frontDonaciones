@@ -66,7 +66,7 @@ const fetchSolicitudesExternas = async () => {
 
   const fetchSolicitudesInternas = async () => {
     try {
-      const response = await fetch('https://alaschiquitanasapi-production.up.railway.app/', {
+      const response = await fetch('http://alaschiquitanasapi-production.up.railway.app/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

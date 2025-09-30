@@ -218,7 +218,7 @@ const [campañas, setCampañas] = useState([]);
             <Select
               options={donantes.map(d => ({
                 value: d.id_donante,
-                label: `${d.nombres} ${d.apellido_paterno || ''}`
+                label: `${d.nombres} ${d.apellido_paterno || ''} ${d.apellido_materno || ''}`
               }))}
               onChange={(selected) => {
                 setFormData(prev => ({
