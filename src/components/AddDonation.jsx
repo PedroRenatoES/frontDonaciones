@@ -20,6 +20,7 @@ function AddDonation() {
   const [almacenes, setAlmacenes] = useState([]);
   const [nombresCuenta, setNombresCuenta] = useState([]);
   const [numerosCuenta, setNumerosCuenta] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [dineroData, setDineroData] = useState({
   monto: '',
   divisa: 'Bs',
@@ -122,21 +123,22 @@ const [donorFormData, setDonorFormData] = useState({
 });
 
 const handleCreateDonor = async () => {
+  if (loading) return; // evita múltiples clics
+  setLoading(true);
   try {
     const res = await axios.post('/donantes', donorFormData);
     const newDonor = res.data;
 
-    // Cierra el modal
-
-    // Actualiza lista de donantes incluyendo el nuevo
-    const updatedDonors = [...donantes, newDonor];
-    setDonantes(updatedDonors);
-
-    // Asigna automáticamente el nuevo donante al formulario de donación
+    setDonorModalOpen(false);
+    setDonantes(prev => [...prev, newDonor]);
     setFormData(prev => ({ ...prev, id_donante: newDonor.id_donante }));
+
+    alert('Donante registrado con éxito');
   } catch (error) {
     console.error('Error al crear donante desde donación', error);
     alert('Error al registrar el donante');
+  } finally {
+    setLoading(false);
   }
 };
 
@@ -352,6 +354,7 @@ const [campañas, setCampañas] = useState([]);
         formData={donorFormData}
         setFormData={setDonorFormData}
         editMode={editMode}
+        loading={loading}
       />
 
       {/* MODAL CAMPAÑA */}

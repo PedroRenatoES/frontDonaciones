@@ -4,7 +4,7 @@ import '../styles/Donors.css';
 
 Modal.setAppElement('#root');
 
-function DonorFormModal({ isOpen, onClose, onSubmit, formData, setFormData, editMode }) {
+function DonorFormModal({ isOpen, onClose, onSubmit, formData, setFormData, editMode, loading }) {
   const [errors, setErrors] = useState({});
 
   // Expresiones regulares
@@ -127,11 +127,14 @@ function DonorFormModal({ isOpen, onClose, onSubmit, formData, setFormData, edit
         </div>
       )}
 
-      <div className="form-group">
-        <button className="btn btn-primary" onClick={onSubmit}>
-          {editMode ? 'Guardar Cambios' : 'Registrar Donante'}
-        </button>
-      </div>
+      <button
+        type="button"
+        className="btn btn-primary"
+        onClick={onSubmit}
+        disabled={loading}
+      >
+        {loading ? 'Registrando...' : editMode ? 'Guardar Cambios' : 'Registrar Donante'}
+      </button>
     </Modal>
   );
 }
