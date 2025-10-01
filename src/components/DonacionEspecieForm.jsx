@@ -94,7 +94,7 @@ function DonacionEspecieForm({ data, setData, articulos, almacenes }) {
 
   const handleCrearArticulo = async () => {
     try {
-      await axios.post('/articulos', nuevoArticulo);
+      await axios.post('/catalogo', nuevoArticulo);
       alert('Artículo creado con éxito');
       setModalArticuloAbierto(false);
       setNuevoArticulo({ nombre_articulo: '', descripcion: '', id_categoria: '' });

@@ -6,7 +6,7 @@ const ListaCajasPorPaquete = ({ idPaquete, refrescarTrigger, setCajas }) => {
   useEffect(() => {
     const fetchCajas = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/cajas');
+        const res = await fetch('https://donacionesbackendpsiii.onrender.com/api/cajas');
         const data = await res.json();
 
         const cajasFiltradas = data.filter(caja => caja.id_paquete === idPaquete);

@@ -112,7 +112,7 @@ const Dashboard = () => {
 
         const idAlmacen = almacenUsuario.data[0].id_almacen;
 
-        const response = await axios.get(`http://localhost:5000/api/inventario/ubicaciones?idAlmacen=${idAlmacen}`);
+        const response = await axios.get(`https://donacionesbackendpsiii.onrender.com/api/inventario/ubicaciones?idAlmacen=${idAlmacen}`);
         const inventario = response.data;
         const bajoStock = inventario.filter(item => item.cantidad_total < 20);
 
@@ -541,9 +541,9 @@ const Dashboard = () => {
                   </td>
                   <td>
                     <span
-                      className={`estado-badge ${donacion.estado_validacion}`}
+                      className={`estado-badge ${0}`}
                     >
-                      {donacion.estado_validacion}
+                      Validado
                     </span>
                   </td>
                 </tr>

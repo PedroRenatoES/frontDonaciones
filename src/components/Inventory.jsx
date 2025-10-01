@@ -561,13 +561,13 @@ function Inventory() {
                 <strong>Almacén:</strong> {donacionSeleccionada.nombre_almacen}
               </p>
               <div style={{ textAlign: "right" }}>
-                <button
+                {/*<button
                   className="btn-edit"
                   onClick={() => abrirModalEditar(donacionSeleccionada)}
                   style={{ marginRight: 8 }}
                 >
                   Editar
-                </button>
+                </button>*/}
                 <button
                   className="btn-close"
                   onClick={() => setDonacionSeleccionada(null)}

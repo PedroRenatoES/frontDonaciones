@@ -56,7 +56,7 @@ const fetchSolicitudesExternas = async () => {
 
   const fetchPaquetes = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/paquetes');
+      const res = await fetch('https://donacionesbackendpsiii.onrender.com/api/paquetes');
       const data = await res.json();
       setPaquetesProceso(data);
     } catch (err) {

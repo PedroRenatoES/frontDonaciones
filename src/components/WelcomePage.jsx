@@ -41,7 +41,7 @@ function WelcomePage({ onLogout }) {
   }, []);
 
 useEffect(() => {
-  axios.get('http://localhost:5000/api/inventario/ubicaciones')
+  axios.get('https://donacionesbackendpsiii.onrender.com/api/inventario/ubicaciones')
     .then(response => {
       const inventario = response.data;
       console.log('Datos de inventario:', inventario); // ✅ Verifica si la API devuelve datos
