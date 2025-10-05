@@ -4,6 +4,7 @@ import "../styles/Inventory.css";
 import DonorsModal from "./DonorsModal";
 import MoneyDonorsModal from "./MoneyDonorsModal";
 import ModalCambioEspacio from "./ModalCambioEspacio"; // Importé el modal para mover ubicación
+import Select from 'react-select'; // Importar react-select
 
 /* ===== Modal reutilizable (en el mismo archivo) ===== */
 function Modal({ open, onClose, title, children }) {
@@ -68,6 +69,12 @@ function Inventory() {
     useState(false); // Estado para el modal de cambio de espacio
   const [donacionParaMover, setDonacionParaMover] = useState(null); // Estado para la donación seleccionada
 
+  // Nuevos estados para los selects
+  const [articulos, setArticulos] = useState([]);
+  const [espacios, setEspacios] = useState([]);
+  const [donantes, setDonantes] = useState([]);
+  const [campanas, setCampanas] = useState([]);
+
   useEffect(() => {
     const fetchAlmacenes = async () => {
       try {
@@ -79,6 +86,32 @@ function Inventory() {
     };
 
     fetchAlmacenes();
+  }, []);
+
+  // Función para cargar datos adicionales (artículos, espacios, donantes, campañas)
+  const fetchExtras = async () => {
+    try {
+      const [articulosRes, espaciosRes, almacenesRes, donantesRes, campanasRes] = await Promise.all([
+        axios.get('/catalogo'),
+        axios.get('/espacios'),
+        axios.get('/almacenes'),
+        axios.get('/donantes'),
+        axios.get('/campanas') // Asumiendo que tienes un endpoint para campañas
+      ]);
+      
+      setArticulos(articulosRes.data);
+      setEspacios(espaciosRes.data);
+      setAlmacenes(almacenesRes.data);
+      setDonantes(donantesRes.data);
+      setCampanas(campanasRes.data);
+    } catch (error) {
+      console.error('Error al cargar datos adicionales:', error);
+    }
+  };
+
+  // Cargar datos extras cuando el componente se monta
+  useEffect(() => {
+    fetchExtras();
   }, []);
 
   useEffect(() => {
@@ -283,7 +316,21 @@ function Inventory() {
   };
 
   const abrirModalEditar = (donacion) => {
-    setDonacionEditando(donacion);
+    
+    // Usar los datos que ya tenemos en la tabla
+    const datosParaEditar = {
+      id_donacion: donacion.id_donacion,
+      id_donante: donacion.id_donante,
+      id_campana: donacion.id_campana,
+      id_articulo: donacion.id_articulo,
+      cantidad: donacion.cantidad, // Usar cantidad_restante si cantidad no existe
+      estado_articulo: donacion.estado_articulo,
+      fecha_vencimiento: donacion.fecha_vencimiento,
+      nombre_donante: donacion.nombre_donante,
+      nombre_articulo: donacion.nombre_articulo
+    };
+    
+    setDonacionEditando(datosParaEditar);
     setModalEditarAbierto(true);
   };
 
@@ -294,33 +341,21 @@ function Inventory() {
 
   const handleGuardarEdicion = async () => {
     try {
-      // Update base donation
       await axios.put(`/donaciones/${donacionEditando.id_donacion}`, {
+        id_donante: donacionEditando.id_donante,
+        id_campana: donacionEditando.id_campana,
+        id_articulo: donacionEditando.id_articulo,
         cantidad: donacionEditando.cantidad,
+        estado_articulo: donacionEditando.estado_articulo,
         fecha_vencimiento: donacionEditando.fecha_vencimiento,
       });
 
-      // Update specific donation type
-      if (donacionEditando.tipo === "Dinero") {
-        await axios.put(
-          `/donaciones-en-dinero/${donacionEditando.id_donacion}`,
-          {
-            monto: donacionEditando.monto,
-            divisa: donacionEditando.divisa,
-          }
-        );
-      } else if (donacionEditando.tipo === "Especie") {
-        await axios.put(
-          `/donaciones-en-especie/${donacionEditando.id_donacion}`,
-          {
-            id_articulo: donacionEditando.id_articulo,
-            id_espacio: donacionEditando.id_espacio,
-          }
-        );
-      }
-
       alert("Donación actualizada con éxito");
       cerrarModalEditar();
+      // Recargar datos si es necesario
+      if (vista === "porEstante") {
+        fetchDonacionesPorEstante();
+      }
     } catch (error) {
       console.error("Error al actualizar la donación:", error);
       alert("No se pudo actualizar la donación");
@@ -378,6 +413,29 @@ function Inventory() {
   const cerrarModalCambioEspacio = () => {
     setDonacionParaMover(null);
     setModalCambioEspacioAbierto(false);
+  };
+
+  // Preparar opciones para los selects
+  const opcionesArticulos = articulos.map(art => ({ 
+    value: art.id_articulo, 
+    label: art.nombre_articulo 
+  }));
+
+  const opcionesDonantes = donantes.map(d => ({ 
+    value: d.id_donante, 
+    label: `${d.nombres} ${d.apellido_paterno || ''} ${d.apellido_materno || ''}`.trim()
+  }));
+
+  const opcionesCampanas = campanas.map(c => ({ 
+    value: c.id_campana, 
+    label: c.nombre_campana 
+  }));
+
+  // Función mejorada para encontrar valores en selects
+  const encontrarValorSelect = (opciones, valor) => {
+    if (!valor) return null;
+    const valorNum = parseInt(valor);
+    return opciones.find(opcion => opcion.value === valorNum) || null;
   };
 
   return (
@@ -561,13 +619,6 @@ function Inventory() {
                 <strong>Almacén:</strong> {donacionSeleccionada.nombre_almacen}
               </p>
               <div style={{ textAlign: "right" }}>
-                {/*<button
-                  className="btn-edit"
-                  onClick={() => abrirModalEditar(donacionSeleccionada)}
-                  style={{ marginRight: 8 }}
-                >
-                  Editar
-                </button>*/}
                 <button
                   className="btn-close"
                   onClick={() => setDonacionSeleccionada(null)}
@@ -579,7 +630,8 @@ function Inventory() {
           )}
         </Modal>
 
-        {/* Edit Donation Modal */}
+        {/* Edit Donation Modal - MODIFICADO CON SELECTS */}
+        {/* Edit Donation Modal - SIMPLIFICADO */}
         <Modal
           open={modalEditarAbierto && !!donacionEditando}
           onClose={cerrarModalEditar}
@@ -588,25 +640,94 @@ function Inventory() {
           {donacionEditando && (
             <>
               <div className="edit-form" style={{ marginBottom: "1rem" }}>
-                <div>
+                <div className="form-group">
+                  <label>Donante:</label>
+                  <Select
+                    options={opcionesDonantes}
+                    onChange={(selected) => {
+                      setDonacionEditando({
+                        ...donacionEditando,
+                        id_donante: selected?.value || '',
+                        nombre_donante: selected?.label || ''
+                      });
+                    }}
+                    value={opcionesDonantes.find(d => d.value === donacionEditando.id_donante) || null}
+                    placeholder="Seleccionar donante"
+                    isClearable
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Campaña:</label>
+                  <Select
+                    options={opcionesCampanas}
+                    onChange={(selected) => {
+                      setDonacionEditando({
+                        ...donacionEditando,
+                        id_campana: selected?.value || ''
+                      });
+                    }}
+                    value={opcionesCampanas.find(c => c.value === donacionEditando.id_campana) || null}
+                    placeholder="Seleccionar campaña"
+                    isClearable
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Artículo:</label>
+                  <Select
+                    options={opcionesArticulos}
+                    onChange={(selected) => {
+                      setDonacionEditando({
+                        ...donacionEditando,
+                        id_articulo: selected?.value || ''
+                      });
+                    }}
+                    value={opcionesArticulos.find(a => a.value === donacionEditando.id_articulo) || null}
+                    placeholder="Seleccionar artículo"
+                    isClearable
+                  />
+                </div>
+
+                <div className="form-group">
                   <label>Cantidad:</label>
                   <input
                     type="number"
-                    value={donacionEditando.cantidad}
+                    value={donacionEditando.cantidad || ''}
                     onChange={(e) =>
                       setDonacionEditando({
                         ...donacionEditando,
-                        cantidad: e.target.value,
+                        cantidad: parseInt(e.target.value) || 0,
                       })
                     }
                     className="form-control"
+                    min="1"
                   />
                 </div>
-                <div style={{ marginTop: 10 }}>
+
+                <div className="form-group">
+                  <label>Estado del Artículo:</label>
+                  <select
+                    value={donacionEditando.estado_articulo || ''}
+                    onChange={(e) =>
+                      setDonacionEditando({
+                        ...donacionEditando,
+                        estado_articulo: e.target.value,
+                      })
+                    }
+                    className="form-control"
+                  >
+                    <option value="">Seleccionar estado</option>
+                    <option value="Sellado">Sellado</option>
+                    <option value="Abierto">Abierto</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
                   <label>Fecha de Vencimiento:</label>
                   <input
                     type="date"
-                    value={donacionEditando.fecha_vencimiento || ""}
+                    value={donacionEditando.fecha_vencimiento || ''}
                     onChange={(e) =>
                       setDonacionEditando({
                         ...donacionEditando,
@@ -617,6 +738,7 @@ function Inventory() {
                   />
                 </div>
               </div>
+
               <div style={{ textAlign: "right" }}>
                 <button
                   className="btn-save"
@@ -700,6 +822,7 @@ function Inventory() {
                             <tr>
                               <th>Artículo</th>
                               <th>Donante</th>
+                              <th>Cantidad Donada</th>
                               <th>Cantidad Restante</th>
                               <th>Fecha de Vencimiento</th>
                               <th>Acciones</th>
@@ -710,6 +833,7 @@ function Inventory() {
                               <tr key={donacion.id_donacion}>
                                 <td>{donacion.nombre_articulo}</td>
                                 <td>{donacion.nombre_donante}</td>
+                                <td>{donacion.cantidad}</td>
                                 <td>{donacion.cantidad_restante}</td>
                                 <td>
                                   {donacion.fecha_vencimiento
@@ -733,6 +857,20 @@ function Inventory() {
                                     }}
                                   >
                                     Mover Ubicación
+                                  </button>
+
+                                  <button
+                                    onClick={() => abrirModalEditar(donacion)}
+                                    style={{
+                                      padding: "0.3rem 0.6rem",
+                                      borderRadius: "5px",
+                                      backgroundColor: "#28a745",
+                                      color: "white",
+                                      border: "none",
+                                      cursor: "pointer"
+                                    }}
+                                  >
+                                    Editar
                                   </button>
                                 </td>
                               </tr>
