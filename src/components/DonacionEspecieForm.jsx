@@ -9,6 +9,7 @@ function DonacionEspecieForm({ data, setData, articulos, almacenes }) {
   const [unidades, setUnidades] = useState([]);
   const [modalArticuloAbierto, setModalArticuloAbierto] = useState(false); // Estado para el modal
   const [categorias, setCategorias] = useState([]); // Estado para las categorías
+  const [estantes, setEstantes] = useState([]); // Estado para los estantes
   const [nuevoArticulo, setNuevoArticulo] = useState({
     nombre_articulo: '',
     descripcion: '',
@@ -28,14 +29,34 @@ function DonacionEspecieForm({ data, setData, articulos, almacenes }) {
     label: art.nombre_articulo
   })); // Restauré la definición de `opcionesArticulos`
 
+  // Obtener estantes del almacén actual
+  useEffect(() => {
+    const fetchEstantes = async () => {
+      if (almacenUsuario?.id_almacen) {
+        try {
+          const res = await axios.get(`/estantes/almacen/${almacenUsuario.id_almacen}`);
+          setEstantes(res.data);
+        } catch (error) {
+          console.error('Error al obtener estantes del almacén:', error);
+          setEstantes([]);
+        }
+      } else {
+        setEstantes([]);
+      }
+    };
+
+    fetchEstantes();
+  }, [almacenUsuario]);
+
+  // Obtener espacios por estante seleccionado
   useEffect(() => {
     const fetchEspacios = async () => {
-      if (data.id_almacen) {
+      if (data.id_estante) {
         try {
-          const res = await axios.get(`/espacios/por-almacen/${data.id_almacen}`);
+          const res = await axios.get(`/espacios/estante/${data.id_estante}`);
           setEspaciosFiltrados(res.data);
         } catch (error) {
-          console.error('Error al obtener espacios del almacén:', error);
+          console.error('Error al obtener espacios del estante:', error);
           setEspaciosFiltrados([]);
         }
       } else {
@@ -44,7 +65,7 @@ function DonacionEspecieForm({ data, setData, articulos, almacenes }) {
     };
 
     fetchEspacios();
-  }, [data.id_almacen]);
+  }, [data.id_estante]);
 
   useEffect(() => {
     const fetchUnidades = async () => {
@@ -157,18 +178,45 @@ function DonacionEspecieForm({ data, setData, articulos, almacenes }) {
           </div>
 
           <div className="mb-3">
-  <label><strong>Almacén asignado</strong></label>
-  {almacenUsuario ? (
-    <div className="almacenes-grid">
-      <div className="almacen-card selected">
-        <div className="almacen-icon">🏬</div>
-        <div className="almacen-nombre">{almacenUsuario.nombre_almacen}</div>
-      </div>
-    </div>
-  ) : (
-    <div className="text-muted">No se encontró el almacén asignado.</div>
-  )}
-</div>
+            <label><strong>Almacén asignado</strong></label>
+            {almacenUsuario ? (
+              <div className="almacenes-grid">
+                <div className="almacen-card selected">
+                  <div className="almacen-icon">🏬</div>
+                  <div className="almacen-nombre">{almacenUsuario.nombre_almacen}</div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-muted">No se encontró el almacén asignado.</div>
+            )}
+          </div>
+
+          {/* Nuevo campo para estantes en cuadros */}
+          <div className="mb-3">
+            <label><strong>Seleccione un estante</strong></label>
+            {estantes.length === 0 ? (
+              <div className="text-muted">No hay estantes disponibles en este almacén.</div>
+            ) : (
+              <div className="almacenes-grid">
+                {estantes.map(est => (
+                  <div
+                    key={est.id_estante}
+                    className={`almacen-card ${data.id_estante === est.id_estante ? 'selected' : ''}`}
+                    onClick={() => {
+                      setData(prev => ({
+                        ...prev,
+                        id_estante: est.id_estante,
+                        id_espacio: '' // Limpiar espacio seleccionado al cambiar estante
+                      }));
+                    }}
+                  >
+                    <div className="almacen-icon">🗄️</div>
+                    <div className="almacen-nombre">{est.nombre}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
         </div>
 
@@ -176,26 +224,29 @@ function DonacionEspecieForm({ data, setData, articulos, almacenes }) {
         <div className="form-section">
           <div className="mb-3">
             <label><strong>Seleccione un espacio en el almacén</strong></label>
-            {espaciosFiltrados.length === 0 && (
-              <div className="text-muted">Seleccione un almacén para ver sus espacios disponibles.</div>
+            {!data.id_estante ? (
+              <div className="text-muted">Seleccione un estante para ver sus espacios disponibles.</div>
+            ) : espaciosFiltrados.length === 0 ? (
+              <div className="text-muted">No hay espacios disponibles en este estante.</div>
+            ) : (
+              <div className="espacios-grid">
+                {espaciosFiltrados.map(esp => (
+                  <div
+                    key={esp.id_espacio}
+                    className={`espacio-card ${data.id_espacio === esp.id_espacio ? 'selected' : ''} ${esp.lleno ? 'lleno' : ''}`}
+                    onClick={() => {
+                      if (!esp.lleno) {
+                        setData({ ...data, id_espacio: esp.id_espacio });
+                      }
+                    }}
+                  >
+                    <div className="espacio-icon">📦</div>
+                    <div className="espacio-codigo">{esp.codigo}</div>
+                    {esp.lleno && <div className="espacio-status">Lleno</div>}
+                  </div>
+                ))}
+              </div>
             )}
-            <div className="espacios-grid">
-              {espaciosFiltrados.map(esp => (
-                <div
-                  key={esp.id_espacio}
-                  className={`espacio-card ${data.id_espacio === esp.id_espacio ? 'selected' : ''} ${esp.lleno ? 'lleno' : ''}`}
-                  onClick={() => {
-                    if (!esp.lleno) {
-                      setData({ ...data, id_espacio: esp.id_espacio });
-                    }
-                  }}
-                >
-                  <div className="espacio-icon">📦</div>
-                  <div className="espacio-codigo">{esp.codigo}</div>
-                  {esp.lleno && <div className="espacio-status">Lleno</div>}
-                </div>
-              ))}
-            </div>
           </div>
         </div>
 

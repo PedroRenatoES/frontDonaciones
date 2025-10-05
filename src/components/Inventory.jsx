@@ -315,6 +315,93 @@ function Inventory() {
     setDonacionSeleccionada(donacion);
   };
 
+  const handleEliminarDonacion = async (donacion) => {
+    let mensajeConfirmacion = `¿Estás seguro de que quieres eliminar la donación de "${donacion.nombre_articulo}"?`;
+    
+    // Agregar información adicional al mensaje
+    if (donacion.cantidad_restante !== donacion.cantidad) {
+      mensajeConfirmacion += `\n\n⚠️  ATENCIÓN: Esta donación ya ha sido utilizada parcialmente (${donacion.cantidad_restante}/${donacion.cantidad} restantes).`;
+      
+      if (donacion.fecha_vencimiento) {
+        const fechaVencimiento = new Date(donacion.fecha_vencimiento);
+        const fechaActual = new Date();
+        const yaVencido = fechaVencimiento < fechaActual;
+        
+        if (yaVencido) {
+          mensajeConfirmacion += `\n✅ El artículo ya venció el ${fechaVencimiento.toLocaleDateString()} - Se puede eliminar.`;
+        } else {
+          mensajeConfirmacion += `\n❌ El artículo aún no vence (${fechaVencimiento.toLocaleDateString()}) - No se puede eliminar.`;
+        }
+      } else {
+        mensajeConfirmacion += `\n❌ El artículo no tiene fecha de vencimiento - No se puede eliminar.`;
+      }
+    }
+
+    if (!window.confirm(mensajeConfirmacion)) {
+      return;
+    }
+
+    try {
+      await axios.delete(`/donaciones/${donacion.id_donacion}`);
+      
+      alert("Donación eliminada con éxito");
+      
+      // Recargar datos
+      if (vista === "porEstante") {
+        fetchDonacionesPorEstante();
+      }
+    } catch (error) {
+      console.error("Error al eliminar la donación:", error);
+      
+      if (error.response?.status === 400) {
+        alert(error.response.data.details);
+      } else {
+        alert("No se pudo eliminar la donación");
+      }
+    }
+  };
+
+  const marcarEspacioLleno = async (id_espacio) => {
+    try {
+      console.log(`🔄 Marcando espacio ${id_espacio} como lleno...`);
+      const response = await axios.put(`/espacios/${id_espacio}/llenar`);
+      console.log('✅ Respuesta del servidor:', response.data);
+      
+      alert("Espacio marcado como lleno");
+      
+      // Recargar los datos
+      if (vista === "porEstante") {
+        fetchDonacionesPorEstante();
+      }
+      
+    } catch (error) {
+      console.error("Error al marcar espacio como lleno:", error);
+      console.error("Detalles del error:", error.response?.data);
+      alert("No se pudo marcar el espacio como lleno");
+    }
+  };
+
+  // Función para marcar espacio como con espacio disponible
+  const marcarEspacioVacio = async (id_espacio) => {
+    try {
+      console.log(`🔄 Marcando espacio ${id_espacio} como disponible...`);
+      const response = await axios.put(`/espacios/${id_espacio}/vaciar`);
+      console.log('✅ Respuesta del servidor:', response.data);
+      
+      alert("Espacio marcado como con espacio disponible");
+      
+      // Recargar los datos
+      if (vista === "porEstante") {
+        fetchDonacionesPorEstante();
+      }
+      
+    } catch (error) {
+      console.error("Error al marcar espacio como vacío:", error);
+      console.error("Detalles del error:", error.response?.data);
+      alert("No se pudo marcar el espacio como con espacio disponible");
+    }
+  };
+
   const abrirModalEditar = (donacion) => {
     
     // Usar los datos que ya tenemos en la tabla
@@ -373,12 +460,12 @@ function Inventory() {
       const almacenUsuario = almacenes.find(
         (alm) => alm.nombre_almacen === nombreAlmacenLS
       );
-      if (!almacenUsuario) {
+      {/*if (!almacenUsuario) {
         console.error(
           "No se encontró un almacén que coincida con el nombre almacenado."
         );
         return;
-      }
+      }*/}
 
       const response = await axios.get(
         `inventario/donaciones-por-estante/${almacenUsuario.id_almacen}`
@@ -807,17 +894,87 @@ function Inventory() {
           <section className="table-section">
             <h4>Donaciones por Estante</h4>
             {estantesConContenido.map((estante) => (
-              <div key={estante.id_estante} style={{ marginBottom: "1rem" }}>
+              <div key={estante.id_estante} style={{ marginBottom: "2rem", position: "relative" }}>
                 <h5>{estante.nombre_estante}</h5>
                 {estante.espacios.map(
                   (espacio) =>
                     espacio.donaciones.length > 0 && (
                       <div
                         key={espacio.id_espacio}
-                        style={{ marginLeft: "1rem" }}
+                        style={{ 
+                          marginLeft: "1rem", 
+                          marginBottom: "1.5rem",
+                          border: "1px solid #e0e0e0",
+                          borderRadius: "8px",
+                          padding: "1rem",
+                          backgroundColor: "#f9f9f9"
+                        }}
                       >
-                        <h6>{espacio.nombre_espacio}</h6>
-                        <table className="activity-table">
+                        {/* ✅ Encabezado del espacio con el botón a la derecha */}
+                        <div style={{ 
+                          display: "flex", 
+                          justifyContent: "space-between", 
+                          alignItems: "center", 
+                          marginBottom: "1rem" 
+                        }}>
+                          <h6 style={{ margin: 0 }}>
+                            {espacio.nombre_espacio}
+                            {/* ✅ Usar el estado del espacio del backend */}
+                            {espacio.lleno && (
+                              <span style={{ 
+                                marginLeft: "10px", 
+                                color: "#dc3545", 
+                                fontSize: "0.8rem",
+                                fontWeight: "bold"
+                              }}>
+                                (LLENO)
+                              </span>
+                            )}
+                          </h6>
+                          
+                          {/* ✅ Botón para marcar espacio como lleno/vacío - usar datos del backend */}
+                          {!espacio.lleno ? (
+                            <button
+                              onClick={() => marcarEspacioLleno(espacio.id_espacio)}
+                              style={{
+                                padding: "0.5rem 1rem",
+                                borderRadius: "5px",
+                                backgroundColor: "#ffc107",
+                                color: "black",
+                                border: "none",
+                                cursor: "pointer",
+                                fontSize: "0.9rem",
+                                fontWeight: "bold",
+                                whiteSpace: "nowrap"
+                              }}
+                              title="Marcar espacio como lleno"
+                            >
+                              🚫 Marcar Lleno
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => marcarEspacioVacio(espacio.id_espacio)}
+                              style={{
+                                padding: "0.5rem 1rem",
+                                borderRadius: "5px",
+                                backgroundColor: "#28a745",
+                                color: "white",
+                                border: "none",
+                                cursor: "pointer",
+                                fontSize: "0.9rem",
+                                fontWeight: "bold",
+                                whiteSpace: "nowrap"
+                              }}
+                              title="Marcar espacio como con espacio disponible"
+                            >
+                              ✅ Espacio Disponible
+                            </button>
+                          )}
+                        </div>
+
+                        
+                        {/* Tabla de donaciones */}
+                        <table className="activity-table" style={{ width: "100%" }}>
                           <thead>
                             <tr>
                               <th>Artículo</th>
@@ -837,16 +994,13 @@ function Inventory() {
                                 <td>{donacion.cantidad_restante}</td>
                                 <td>
                                   {donacion.fecha_vencimiento
-                                    ? new Date(
-                                        donacion.fecha_vencimiento
-                                      ).toLocaleDateString()
+                                    ? new Date(donacion.fecha_vencimiento).toLocaleDateString()
                                     : "N/A"}
                                 </td>
                                 <td>
+                                  {/* Botón Mover Ubicación - visible para todos */}
                                   <button
-                                    onClick={() =>
-                                      abrirModalCambioEspacio(donacion)
-                                    }
+                                    onClick={() => abrirModalCambioEspacio(donacion)}
                                     style={{
                                       padding: "0.3rem 0.6rem",
                                       borderRadius: "5px",
@@ -854,24 +1008,45 @@ function Inventory() {
                                       color: "white",
                                       border: "none",
                                       cursor: "pointer",
+                                      marginRight: "5px"
                                     }}
                                   >
                                     Mover Ubicación
                                   </button>
 
-                                  <button
-                                    onClick={() => abrirModalEditar(donacion)}
-                                    style={{
-                                      padding: "0.3rem 0.6rem",
-                                      borderRadius: "5px",
-                                      backgroundColor: "#28a745",
-                                      color: "white",
-                                      border: "none",
-                                      cursor: "pointer"
-                                    }}
-                                  >
-                                    Editar
-                                  </button>
+                                  {/* Botones de Editar y Eliminar - solo para admin */}
+                                  {localStorage.getItem('rol') === '1' && (
+                                    <>
+                                      <button
+                                        onClick={() => abrirModalEditar(donacion)}
+                                        style={{
+                                          padding: "0.3rem 0.6rem",
+                                          borderRadius: "5px",
+                                          backgroundColor: "#28a745",
+                                          color: "white",
+                                          border: "none",
+                                          cursor: "pointer",
+                                          marginRight: "5px"
+                                        }}
+                                      >
+                                        Editar
+                                      </button>
+
+                                      <button
+                                        onClick={() => handleEliminarDonacion(donacion)}
+                                        style={{
+                                          padding: "0.3rem 0.6rem",
+                                          borderRadius: "5px",
+                                          backgroundColor: "#dc3545",
+                                          color: "white",
+                                          border: "none",
+                                          cursor: "pointer"
+                                        }}
+                                      >
+                                        Eliminar
+                                      </button>
+                                    </>
+                                  )}
                                 </td>
                               </tr>
                             ))}
@@ -883,10 +1058,72 @@ function Inventory() {
               </div>
             ))}
 
+            {/* Para estantes vacíos también actualizamos la estructura */}
             {mostrarEstantesVacios &&
               estantesVacios.map((estante) => (
                 <div key={estante.id_estante} style={{ marginBottom: "1rem" }}>
-                  <h5>{estante.nombre_estante} (Vacío)</h5>
+                  <h5>
+                    {estante.nombre_estante} (Vacío)
+                    {estante.espacios.some(espacio => espacio.estado_espacio === 'lleno') && (
+                      <span style={{ 
+                        marginLeft: "10px", 
+                        color: "#dc3545", 
+                        fontSize: "0.8rem"
+                      }}>
+                        - Algunos espacios marcados como llenos
+                      </span>
+                    )}
+                  </h5>
+                  
+                  {/* Mostrar botones para espacios vacíos también */}
+                  {estante.espacios.map(espacio => (
+                    <div key={espacio.id_espacio} style={{ 
+                      marginLeft: "1rem", 
+                      marginBottom: "0.5rem",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "0.5rem",
+                      border: "1px solid #e0e0e0",
+                      borderRadius: "5px",
+                      backgroundColor: "#f5f5f5"
+                    }}>
+                      <span>{espacio.nombre_espacio}</span>
+                      {espacio.estado_espacio === 'disponible' ? (
+                        <button
+                          onClick={() => marcarEspacioLleno(espacio.id_espacio)}
+                          style={{
+                            padding: "0.3rem 0.8rem",
+                            borderRadius: "5px",
+                            backgroundColor: "#ffc107",
+                            color: "black",
+                            border: "none",
+                            cursor: "pointer",
+                            fontSize: "0.8rem",
+                            fontWeight: "bold"
+                          }}
+                        >
+                          🚫 Marcar Lleno
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => marcarEspacioVacio(espacio.id_espacio)}
+                          style={{
+                            padding: "0.3rem 0.8rem",
+                            borderRadius: "5px",
+                            backgroundColor: "#28a745",
+                            color: "white",
+                            border: "none",
+                            cursor: "pointer",
+                            fontSize: "0.8rem",
+                            fontWeight: "bold"
+                          }}
+                        >
+                          ✅ Disponible
+                        </button>
+                      )}
+                    </div>
+                  ))}
                 </div>
               ))}
 

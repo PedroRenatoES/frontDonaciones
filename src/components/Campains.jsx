@@ -23,6 +23,24 @@ function Campains() {
     fetchCampanas();
   }, []);
 
+  // Función corregida para formatear fechas sin problemas de zona horaria
+  const formatearFecha = (fechaISO) => {
+    if (!fechaISO) return 'N/A';
+    
+    // Extraer solo la parte de la fecha (YYYY-MM-DD) sin la hora
+    const fechaStr = fechaISO.split('T')[0];
+    const [year, month, day] = fechaStr.split('-').map(Number);
+    
+    // Crear fecha local (no UTC) para evitar problemas de zona horaria
+    const fechaLocal = new Date(year, month - 1, day);
+    
+    return new Intl.DateTimeFormat('es-ES', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    }).format(fechaLocal);
+  };
+
   const filteredCampanas = campanas.filter(c =>
     c.nombre_campana.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -55,14 +73,8 @@ function Campains() {
           <CampanaCard
             key={`campana-${campana.id_campana}`}
             campana={campana}
-            formatearFecha={(fechaISO) => {
-              const fecha = new Date(fechaISO);
-              return new Intl.DateTimeFormat('es-ES', {
-                day: '2-digit',
-                month: 'long',
-                year: 'numeric'
-              }).format(fecha);
-            }}
+            formatearFecha={formatearFecha}
+            onCampanaUpdated={fetchCampanas}
           />
         ))}
       </div>

@@ -9,6 +9,7 @@ import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import { useMapEvents } from "react-leaflet";
 import CampanaDetailsModal from "./CampanaDetailsModal";
+import EditCampanaModal from "./EditCampanaModal";
 
 // Portal component for rendering modals outside the card
 function Portal({ children }) {
@@ -34,7 +35,7 @@ function MapClickHandler({ onClick }) {
   return null;
 }
 
-function CampanaCard({ campana, formatearFecha }) {
+function CampanaCard({ campana, formatearFecha, onCampanaUpdated }) {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [puntosRecoleccion, setPuntosRecoleccion] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -42,12 +43,14 @@ function CampanaCard({ campana, formatearFecha }) {
   const [newPoint, setNewPoint] = useState({ nombre_punto: "", direccion: "" });
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [editingPuntoId, setEditingPuntoId] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
   const defaultImage = "banner.jpg";
 
+  const esAdmin = localStorage.getItem('rol') === '1';
 
   // Lock background scroll when modals are open
   useEffect(() => {
-    const anyOpen = showModal || showAddPointModal || showDetailsModal;
+    const anyOpen = showModal || showAddPointModal || showDetailsModal || showEditModal;
     const body = document.body;
     if (anyOpen) {
       body.classList.add("no-scroll");
@@ -55,7 +58,7 @@ function CampanaCard({ campana, formatearFecha }) {
       body.classList.remove("no-scroll");
     }
     return () => body.classList.remove("no-scroll");
-  }, [showModal, showAddPointModal, showDetailsModal]);
+  }, [showModal, showAddPointModal, showDetailsModal, showEditModal]);
 
   const handleShowPuntosRecoleccion = () => {
     axios
@@ -130,8 +133,26 @@ function CampanaCard({ campana, formatearFecha }) {
     }
   };
 
+  const handleCampanaUpdated = () => {
+    if (onCampanaUpdated) {
+      onCampanaUpdated();
+    }
+    setShowEditModal(false);
+  };
+
   return (
     <div className="camp-card">
+      {/* ✅ Botón de editar en esquina superior derecha - solo para admin */}
+      {esAdmin && (
+        <button
+          className="campana-edit-button"
+          onClick={() => setShowEditModal(true)}
+          title="Editar campaña"
+        >
+          ⚙️
+        </button>
+      )}
+
       <img
         src={campana.imagen_url || defaultImage}
         alt="Imagen de campaña"
@@ -160,6 +181,17 @@ function CampanaCard({ campana, formatearFecha }) {
         </button>
 
       </div>
+
+      {showEditModal && (
+        <Portal>
+          <EditCampanaModal
+            show={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            campana={campana}
+            onUpdated={handleCampanaUpdated}
+          />
+        </Portal>
+      )}
 
       {/* Modales fuera de la tarjeta para que aparezcan en el centro de la pantalla */}
       {showModal && (

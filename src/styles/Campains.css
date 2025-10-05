@@ -19,6 +19,58 @@
     z-index: 1;
 }
 
+/* Estilos para el botón de editar campaña */
+.campana-edit-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.campana-edit-button:hover {
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transform: scale(1.1);
+}
+
+.camp-card {
+  position: relative; /* Importante para posicionar el botón absolutamente */
+}
+
+/* Estilos adicionales para el modal de edición */
+.current-image {
+  margin: 10px 0;
+  padding: 10px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.current-image p {
+  margin: 0 0 5px 0;
+  font-weight: bold;
+  color: #333;
+}
+
+.file-help {
+  display: block;
+  margin-top: 5px;
+  color: #666;
+  font-style: italic;
+}
+
 /* Título principal */
 .campains-title {
     font-size: 2.8rem;
