@@ -248,18 +248,16 @@
 .modal-form {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
     padding: 2rem;
-    max-width: 500px;
-    width: 90%;
-    margin: auto;
+    max-width: 560px;
+    width: 100%;
     border-radius: 20px;
     outline: none;
-    position: relative;
-    top: 50%;
-    transform: translateY(-50%);
     z-index: 1001;
     backdrop-filter: blur(20px);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
     border: 1px solid rgba(255, 255, 255, 0.4);
+    max-height: 90vh; /* evita que se salga de pantalla */
+    overflow-y: auto; /* scroll interno si excede */
 }
 
 .modal-overlay {
@@ -271,6 +269,10 @@
     bottom: 0;
     z-index: 1000;
     backdrop-filter: blur(4px);
+    display: flex; /* centrar modal */
+    align-items: center;
+    justify-content: center;
+    padding: 24px; /* margen para pantallas pequeñas */
 }
 
 .form-control.error {
@@ -332,7 +334,8 @@
     
     .modal-form {
         padding: 1.5rem;
-        margin: 20px;
-        width: calc(100% - 40px);
+        width: 100%;
+        max-width: 560px;
+        max-height: 90vh;
     }
 }

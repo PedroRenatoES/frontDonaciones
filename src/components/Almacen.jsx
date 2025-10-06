@@ -347,7 +347,7 @@ function Almacenes() {
       console.error("Error al eliminar el almacén:", error);
       await showAlert({
         title: "Error",
-        message: "No se pudo eliminar el almacén",
+        message: "No se puede eliminar un almacén que tiene donaciones",
         type: "error"
       });
     }
