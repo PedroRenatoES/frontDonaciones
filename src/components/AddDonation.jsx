@@ -3,10 +3,13 @@ import Modal from 'react-modal';
 import '../styles/AddDonation.css';
 import axios from '../axios';
 import DonorFormModal from '../components/DonorFormModal';
+import Toast from '../components/Toast';
 import DonacionDineroForm from '../components/DonacionDineroForm';
 import DonacionEspecieForm from '../components/DonacionEspecieForm';
 import Select from 'react-select';
 import CampanaModal from '../components/CampanaModal';
+import ConfirmModal from '../components/ConfirmModal';
+import { useConfirmModal } from '../hooks/useConfirmModal';
 
 
 Modal.setAppElement('#root');
@@ -20,6 +23,7 @@ function AddDonation() {
   const [almacenes, setAlmacenes] = useState([]);
   const [nombresCuenta, setNombresCuenta] = useState([]);
   const [numerosCuenta, setNumerosCuenta] = useState([]);
+  const { modalState, showAlert } = useConfirmModal();
   const [loading, setLoading] = useState(false);
   const [dineroData, setDineroData] = useState({
   monto: '',
@@ -183,7 +187,8 @@ const handleSubmit = async () => {
   } catch (error) {
     console.error(error.response?.data || error.message);
     console.error('Error al guardar la donación:', error);
-    setDonationNotice({ success: '', error: 'Error al guardar la donación' });
+    setDonationNotice({ success: '', error: '' });
+    await showAlert({ title: 'Error', message: 'Error al guardar la donación', type: 'error', confirmText: 'Entendido' });
   }
 };
 
@@ -194,7 +199,29 @@ const [campañas, setCampañas] = useState([]);
 
   return (
     <div className="add-donation">
+      <Toast
+        show={!!donationNotice.success}
+        type="success"
+        message={donationNotice.success}
+        onClose={() => setDonationNotice({ success: '', error: '' })}
+      />
+      <Toast
+        show={!!donationNotice.error}
+        type="error"
+        message={donationNotice.error}
+        onClose={() => setDonationNotice({ success: '', error: '' })}
+      />
       <h1>Agregar Nueva Donación</h1>
+      <ConfirmModal
+        show={modalState.show}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        confirmText={modalState.confirmText}
+        cancelText={modalState.cancelText}
+        onConfirm={modalState.onConfirm}
+        onCancel={modalState.onCancel}
+      />
       
       {/* Formulario Principal */}
       <div className="donation-form">
@@ -304,24 +331,14 @@ const [campañas, setCampañas] = useState([]);
           </div>
         </div>
         
-        {/* Botón de guardar integrado */}
-        <div className="form-submit-section">
-          <button className="submit-btn" onClick={handleSubmit}>
-            Guardar Donación
-          </button>
-          {donationNotice && donationNotice.success && (
-            <div className="text-success" style={{ marginTop: 8 }}>{donationNotice.success}</div>
-          )}
-          {donationNotice && donationNotice.error && (
-            <div className="text-danger" style={{ marginTop: 8 }}>{donationNotice.error}</div>
-          )}
-          {donorNotice.success && (
-            <div className="text-success" style={{ marginTop: 8 }}>{donorNotice.success}</div>
-          )}
-          {donorNotice.error && (
-            <div className="text-danger" style={{ marginTop: 8 }}>{donorNotice.error}</div>
-          )}
-        </div>
+        {/* Botón de guardar (solo arriba cuando no hay tipo seleccionado) */}
+        {!tipoDonacion && (
+          <div className="form-submit-section">
+            <button className="submit-btn" onClick={handleSubmit}>
+              Guardar Donación
+            </button>
+          </div>
+        )}
       </div>
       
       {/* Formulario Específico */}
@@ -355,6 +372,13 @@ const [campañas, setCampañas] = useState([]);
               almacenes={almacenes}
             />
           )}
+
+          {/* Botón de guardar integrado abajo cuando hay tipo seleccionado */}
+          <div className="form-submit-section">
+            <button className="submit-btn" onClick={handleSubmit}>
+              Guardar Donación
+            </button>
+          </div>
         </div>
       )}
 
