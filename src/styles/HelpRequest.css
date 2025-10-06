@@ -12,6 +12,42 @@
     text-align: center;
 }
 
+/* Estilos para las nuevas secciones */
+.tarea-almacen {
+  border-left: 4px solid #ffc107;
+  background-color: #fffbf0;
+}
+
+.pedido-card {
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  transition: all 0.3s ease;
+}
+
+.pedido-card:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.pedido-header {
+  padding: 1rem;
+  background-color: #f8f9fa;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.pedido-detalle {
+  padding: 1rem;
+  background-color: white;
+}
+
+.admin-distribucion {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px dashed #6c757d;
+}
 
 .sections {
     display: flex;

@@ -8,6 +8,7 @@ const Salidas = () => {
   const [paquetes, setPaquetes] = useState([]);
   const [idPaqueteSeleccionado, setIdPaqueteSeleccionado] = useState('');
   const [usuarioId] = useState(localStorage.getItem('id'));
+  const [miAlmacen] = useState(localStorage.getItem('almacen'));
 
   useEffect(() => {
     const fetchSalidas = async () => {
@@ -22,7 +23,23 @@ const Salidas = () => {
     const fetchPaquetesNoEnviados = async () => {
       try {
         const response = await axios.get('/paquetes/no-enviados');
-        setPaquetes(response.data);
+        
+        // 🔥 FILTRAR por almacén del usuario usando metadatos
+        const paquetesFiltrados = response.data.filter(paquete => {
+          // Extraer metadatos de la descripción
+          const match = paquete.descripcion?.match(/SOL#[^|]+\|ALMACEN:([^|]+)\|/);
+          const almacenPaquete = match ? match[1] : null;
+          
+          // Si tiene metadatos, filtrar por almacén
+          if (almacenPaquete) {
+            return almacenPaquete === miAlmacen;
+          }
+          
+          // Si no tiene metadatos (paquete antiguo), mostrarlo a todos
+          return true;
+        });
+        
+        setPaquetes(paquetesFiltrados);
       } catch (error) {
         console.error('Error al obtener paquetes no enviados:', error);
       }

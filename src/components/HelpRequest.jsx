@@ -4,37 +4,62 @@ import InternalRequestItem from './InternalRequestItem';
 import '../styles/HelpRequest.css';
 import PackageItem from './PackageItem';
 import axios from '../axios';
+
 const HelpRequest = () => {
   const [pedidos, setPedidos] = useState([]);
   const [solicitudesInternas, setSolicitudesInternas] = useState([]);
   const [paquetesProceso, setPaquetesProceso] = useState([]);
   const [donacionesEspecie, setDonacionesEspecie] = useState([]);
   const [catalogoArticulos, setCatalogoArticulos] = useState([]);
-  const handleEliminarPaquete = (idPaquete) => {
-  setPaquetesProceso(prev => prev.filter(p => p.id_paquete !== idPaquete));
-};
-
+  const [miAlmacen] = useState(localStorage.getItem('almacen'));
   const [ordenAsc, setOrdenAsc] = useState(true);
+
+  const handleEliminarPaquete = (idPaquete) => {
+    setPaquetesProceso(prev => prev.filter(p => p.id_paquete !== idPaquete));
+  };
+
+  // 🔥 NUEVAS FUNCIONES PARA METADATOS
+  const extraerMetadatos = (descripcion) => {
+    if (!descripcion) return null;
+    const match = descripcion.match(/SOL#([^|]+)\|ALMACEN:([^|]+)\|(.+)/);
+    return match ? {
+      codigo: match[1],
+      almacen: match[2],
+      descripcionOriginal: match[3]
+    } : null;
+  };
+
+  const obtenerPaquetesDeMiAlmacen = (paquetes) => {
+    return paquetes.filter(paquete => {
+      const metadatos = extraerMetadatos(paquete.descripcion);
+      return metadatos && metadatos.almacen === miAlmacen;
+    });
+  };
+
+  const obtenerPaquetesSinAsignar = (paquetes) => {
+    return paquetes.filter(paquete => {
+      const metadatos = extraerMetadatos(paquete.descripcion);
+      return !metadatos; // Paquetes sin metadatos (antiguos)
+    });
+  };
 
   useEffect(() => {
     fetchSolicitudesInternas();
     fetchSolicitudesExternas();
     fetchPaquetes();
-    fetchDonacionesEspecie(); // Nuevo
-    fetchCatalogo();          // Nuevo
+    fetchDonacionesEspecie();
+    fetchCatalogo();
   }, []);
-  
 
-const fetchSolicitudesExternas = async () => {
-  try {
-    const res = await fetch('https://springboot-backend-dpyv.onrender.com/api/solicitudes/aprobadas/almacen');
-    const data = await res.json();
-    setPedidos(data);
-  } catch (err) {
-    console.error('Error al obtener los pedidos:', err);
-  }
-};
-
+  const fetchSolicitudesExternas = async () => {
+    try {
+      const res = await fetch('http://das-back.local/api/solicitudes/aprobadas/almacen');
+      const data = await res.json();
+      setPedidos(data);
+    } catch (err) {
+      console.error('Error al obtener los pedidos:', err);
+    }
+  };
 
   const fetchDonacionesEspecie = async () => {
     try {
@@ -66,11 +91,10 @@ const fetchSolicitudesExternas = async () => {
 
   const fetchSolicitudesInternas = async () => {
     try {
-      const response = await fetch('http://alaschiquitanasapi-production.up.railway.app/', {
+      const response = await fetch('http://alas-back1.local/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
-          // No agregar Authorization
         },
         body: JSON.stringify({
           query: `
@@ -110,25 +134,24 @@ const fetchSolicitudesExternas = async () => {
         
         {/* ✅ Sección: Solicitudes Internas */}
         <section className="section">
-  <h2>Solicitudes de ayuda Internas</h2>
-  {solicitudesInternas.length === 0 ? (
-    <p>No hay solicitudes internas disponibles.</p>
-  ) : (
-    <div className="donation-list">
-      {solicitudesInternas
-  .filter((recurso) => recurso && recurso.descripcion && recurso.codigo)
-  .map((recurso) => (
-    <InternalRequestItem
-      key={recurso.id}
-      recurso={recurso}
-      catalogo={catalogoArticulos}
-      unidades={donacionesEspecie}
-    />
-))}
-
-    </div>
-  )}
-</section>
+          <h2>Solicitudes de ayuda Internas</h2>
+          {solicitudesInternas.length === 0 ? (
+            <p>No hay solicitudes internas disponibles.</p>
+          ) : (
+            <div className="donation-list">
+              {solicitudesInternas
+                .filter((recurso) => recurso && recurso.descripcion && recurso.codigo)
+                .map((recurso) => (
+                  <InternalRequestItem
+                    key={recurso.id}
+                    recurso={recurso}
+                    catalogo={catalogoArticulos}
+                    unidades={donacionesEspecie}
+                  />
+                ))}
+            </div>
+          )}
+        </section>
 
         {/* ✅ Sección: Solicitudes Externas */}
         <section className="section">
@@ -140,27 +163,44 @@ const fetchSolicitudesExternas = async () => {
           </div>
         </section>
 
-        {/* Placeholder: Paquetes en Proceso */}
+        {/* ✅ Sección: Mis Tareas de Almacén - NUEVA (REEMPLAZA Paquetes en Proceso) */}
         <section className="section">
-          <h2>Paquetes en Proceso</h2>
-          {paquetesProceso.length === 0 ? (
-            <p>No hay paquetes en proceso.</p>
+          <h2>🎯 Mis Tareas - {miAlmacen}</h2>
+          {obtenerPaquetesDeMiAlmacen(paquetesProceso).length === 0 ? (
+            <p>No hay tareas asignadas a tu almacén.</p>
           ) : (
             <div className="donation-list">
-            {paquetesProceso.map((paquete) => (
-              <PackageItem
-                key={paquete.id_paquete}
-                paquete={paquete}
-                donacionesEspecie={donacionesEspecie}
-                catalogoArticulos={catalogoArticulos}
-                onCompletarPaquete={handleEliminarPaquete}
-              />
-            ))}
-
-
+              {obtenerPaquetesDeMiAlmacen(paquetesProceso).map((paquete) => (
+                <PackageItem
+                  key={paquete.id_paquete}
+                  paquete={paquete}
+                  donacionesEspecie={donacionesEspecie}
+                  catalogoArticulos={catalogoArticulos}
+                  onCompletarPaquete={handleEliminarPaquete}
+                  esTareaAlmacen={true}
+                />
+              ))}
             </div>
           )}
         </section>
+
+        {/* ✅ Sección: Paquetes Sin Asignar (antiguos) */}
+        {obtenerPaquetesSinAsignar(paquetesProceso).length > 0 && (
+          <section className="section">
+            <h2>📦 Paquetes Sin Asignar</h2>
+            <div className="donation-list">
+              {obtenerPaquetesSinAsignar(paquetesProceso).map((paquete) => (
+                <PackageItem
+                  key={paquete.id_paquete}
+                  paquete={paquete}
+                  donacionesEspecie={donacionesEspecie}
+                  catalogoArticulos={catalogoArticulos}
+                  onCompletarPaquete={handleEliminarPaquete}
+                />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );
