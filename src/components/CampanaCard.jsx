@@ -10,6 +10,8 @@ import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import { useMapEvents } from "react-leaflet";
 import CampanaDetailsModal from "./CampanaDetailsModal";
 import EditCampanaModal from "./EditCampanaModal";
+import ConfirmModal from "./ConfirmModal";
+import { useConfirmModal } from "../hooks/useConfirmModal";
 
 // Portal component for rendering modals outside the card
 function Portal({ children }) {
@@ -45,6 +47,7 @@ function CampanaCard({ campana, formatearFecha, onCampanaUpdated }) {
   const [editingPuntoId, setEditingPuntoId] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const defaultImage = "banner.jpg";
+  const { modalState, showConfirm, showAlert } = useConfirmModal();
 
   const esAdmin = localStorage.getItem('rol') === '1';
 
@@ -116,20 +119,32 @@ function CampanaCard({ campana, formatearFecha, onCampanaUpdated }) {
       .catch((err) => console.error(err));
   };
 
-  const handleDeletePunto = (id_punto) => {
-    if (
-      window.confirm(
-        "¿Estás seguro de que deseas eliminar este punto de recolección?"
-      )
-    ) {
-      axios
-        .delete(`/puntos-de-recoleccion/${id_punto}`)
-        .then(() => {
-          setPuntosRecoleccion(
-            puntosRecoleccion.filter((p) => p.id_punto !== id_punto)
-          );
-        })
-        .catch((err) => console.error(err));
+  const handleDeletePunto = async (id_punto) => {
+    const confirmed = await showConfirm({
+      title: "Eliminar Punto de Recolección",
+      message: "¿Estás seguro de que deseas eliminar este punto de recolección?",
+      type: "alert"
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await axios.delete(`/puntos-de-recoleccion/${id_punto}`);
+      await showAlert({
+        title: "Éxito",
+        message: "Punto de recolección eliminado correctamente",
+        type: "success"
+      });
+      setPuntosRecoleccion(
+        puntosRecoleccion.filter((p) => p.id_punto !== id_punto)
+      );
+    } catch (error) {
+      console.error("Error al eliminar punto:", error);
+      await showAlert({
+        title: "Error",
+        message: "No se pudo eliminar el punto de recolección",
+        type: "error"
+      });
     }
   };
 
@@ -338,8 +353,8 @@ function CampanaCard({ campana, formatearFecha, onCampanaUpdated }) {
 
       {showAddPointModal && (
         <Portal>
-          <div className="modal-backdrop">
-            <div className="modal-content">
+          <div className="modal-backdrop" style={{ background: "rgba(0, 0, 0, 0)" }}>
+            <div className="modal-content" style={{ background: "white", borderRadius: "24px"}}>
               <h2>Agregar Nuevo Punto de Recolección</h2>
               <MapContainer
                 center={[-17.7833, -63.1821]}
@@ -398,6 +413,22 @@ function CampanaCard({ campana, formatearFecha, onCampanaUpdated }) {
         campana={campana}
         formatearFecha={formatearFecha}
       />
+
+      {/* Modal de confirmación personalizado - FUERA de la carta usando Portal */}
+      {modalState.show && (
+        <Portal>
+          <ConfirmModal
+            show={modalState.show}
+            title={modalState.title}
+            message={modalState.message}
+            type={modalState.type}
+            confirmText={modalState.confirmText}
+            cancelText={modalState.cancelText}
+            onConfirm={modalState.onConfirm}
+            onCancel={modalState.onCancel}
+          />
+        </Portal>
+      )}
     </div>
   );
 }

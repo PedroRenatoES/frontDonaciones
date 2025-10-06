@@ -15,7 +15,8 @@ import HelpRequest from './components/HelpRequest';
 import Campains from './components/Campains';
 import Almacenes from './components/Almacen';
 import Salidas from './components/Salidas';
-import DonacionDinero from './components/DonacionDineroForm'
+import DonacionDinero from './components/DonacionDineroForm';
+import SecureRoute from './components/SecureRoute';
 import './App.css';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -74,6 +75,8 @@ function App() {
             <Routes>
               <Route path="/login" element={!isLoggedIn ? <Login onLogin={handleLogin} /> : <Navigate to="/welcome" />} />
               <Route path="/welcome" element={isLoggedIn ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
+              
+              {/* Rutas protegidas - simplificadas para evitar bucles */}
               <Route path="/dashboard" element={isLoggedIn ? <Dashboard usuario={usuario} /> : <Navigate to="/login" />} />
               <Route path="/inventory" element={isLoggedIn ? <Inventory /> : <Navigate to="/login" />} />
               <Route path="/add-donation" element={isLoggedIn ? <AddDonation /> : <Navigate to="/login" />} />
@@ -86,7 +89,6 @@ function App() {
               <Route path="/help-request" element={isLoggedIn ? <HelpRequest /> : <Navigate to="/login" />} />
               <Route path="/salidas" element={isLoggedIn ? <Salidas /> : <Navigate to="/login" />} />
               <Route path="/" element={<Navigate to={isLoggedIn ? "/dashboard" : "/login"} />} />
-              {/* <Route path='/donacio' */}
             </Routes>
           </div>
         </div>

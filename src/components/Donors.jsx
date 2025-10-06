@@ -3,6 +3,8 @@ import '../styles/Donors.css';
 import axios from '../axios';
 import Modal from 'react-modal';
 import DonorFormModal from '../components/DonorFormModal';
+import ConfirmModal from './ConfirmModal';
+import { useConfirmModal } from '../hooks/useConfirmModal';
 
 
 Modal.setAppElement('#root');
@@ -13,6 +15,7 @@ function Donors() {
   const [editMode, setEditMode] = useState(false);
   const [selectedDonorId, setSelectedDonorId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const { modalState, showConfirm, showAlert } = useConfirmModal();
   const [filteredDonors, setFilteredDonors] = useState([]);
 
   const [formData, setFormData] = useState({
@@ -39,12 +42,29 @@ const fetchDonors = async () => {
 };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('¿Estás seguro de eliminar este donante?')) return;
+    const confirmed = await showConfirm({
+      title: "Eliminar Donante",
+      message: "¿Estás seguro de eliminar este donante?",
+      type: "alert"
+    });
+
+    if (!confirmed) return;
+
     try {
       await axios.delete(`/donantes/${id}`);
+      await showAlert({
+        title: "Éxito",
+        message: "Donante eliminado correctamente",
+        type: "success"
+      });
       fetchDonors();
     } catch (error) {
       console.error('Error al eliminar donante', error);
+      await showAlert({
+        title: "Error",
+        message: "No se pudo eliminar el donante",
+        type: "error"
+      });
     }
   };
 
@@ -166,6 +186,16 @@ const fetchDonors = async () => {
   editMode={editMode}
 />
 
+      <ConfirmModal
+        show={modalState.show}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        confirmText={modalState.confirmText}
+        cancelText={modalState.cancelText}
+        onConfirm={modalState.onConfirm}
+        onCancel={modalState.onCancel}
+      />
 
     </div>
   );

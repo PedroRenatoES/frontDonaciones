@@ -2,12 +2,28 @@ import React, { useState, useEffect } from 'react';
 import axios from '../axios';
 import '../styles/Users.css';
 import UserModal from './UserModal';
+import ConfirmModal from './ConfirmModal';
+import { useConfirmModal } from '../hooks/useConfirmModal';
+import { useSimpleSecurity } from '../hooks/useSimpleSecurity';
 
 function Users() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const [editingUserId, setEditingUserId] = useState(null);
   const [inactiveUsers, setInactiveUsers] = useState([]);
+  const { modalState, showConfirm, showAlert } = useConfirmModal();
+  const { isAdmin, userRole, logActivity } = useSimpleSecurity();
+
+  // Verificar acceso de admin
+  useEffect(() => {
+    if (userRole !== null && !isAdmin) {
+      logActivity('ACCESS_DENIED_INSUFFICIENT_ROLE', { 
+        requiredRole: 'admin',
+        currentRole: userRole
+      });
+      window.location.href = '/dashboard';
+    }
+  }, [isAdmin, userRole, logActivity]);
 
   const [userData, setUserData] = useState({
     nombres: '',
@@ -83,10 +99,18 @@ function Users() {
 
       fetchUsers();
       handleModalClose();
-      alert('Usuario guardado con éxito');
+      await showAlert({
+        title: "Éxito",
+        message: "Usuario guardado con éxito",
+        type: "success"
+      });
     } catch (error) {
       console.error('Error al guardar usuario:', error);
-      alert('Error al guardar usuario');
+      await showAlert({
+        title: "Error",
+        message: "Error al guardar usuario",
+        type: "error"
+      });
     }
   };
 
@@ -98,17 +122,29 @@ function Users() {
   
       if (nuevaContrasena) {
         await navigator.clipboard.writeText(nuevaContrasena);
-        alert(`✅ Usuario activado.\nContraseña temporal "${nuevaContrasena}" copiada al portapapeles.`);
+        await showAlert({
+          title: "Usuario Activado",
+          message: `✅ Usuario activado.\nContraseña temporal "${nuevaContrasena}" copiada al portapapeles.`,
+          type: "success"
+        });
       } else {
-        alert('✅ Usuario activado, pero no se recibió una contraseña.');
+        await showAlert({
+          title: "Usuario Activado",
+          message: "✅ Usuario activado, pero no se recibió una contraseña.",
+          type: "success"
+        });
       }
-  
+
       fetchUsers();
       fetchInactiveUsers();
       handleModalClose();
     } catch (error) {
       console.error('Error al activar usuario:', error);
-      alert('❌ Error al activar usuario. Verifica la consola.');
+      await showAlert({
+        title: "Error",
+        message: "❌ Error al activar usuario. Verifica la consola.",
+        type: "error"
+      });
     }
   };
   
@@ -134,14 +170,30 @@ function Users() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('¿Estás seguro de eliminar este usuario?')) {
-      try {
-        await axios.delete(`/users/${id}`);
-        fetchUsers();
-        fetchInactiveUsers();
-      } catch (error) {
-        console.error('Error al eliminar usuario:', error);
-      }
+    const confirmed = await showConfirm({
+      title: "Eliminar Usuario",
+      message: "¿Estás seguro de eliminar este usuario?",
+      type: "alert"
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await axios.delete(`/users/${id}`);
+      await showAlert({
+        title: "Éxito",
+        message: "Usuario eliminado correctamente",
+        type: "success"
+      });
+      fetchUsers();
+      fetchInactiveUsers();
+    } catch (error) {
+      console.error('Error al eliminar usuario:', error);
+      await showAlert({
+        title: "Error",
+        message: "No se pudo eliminar el usuario",
+        type: "error"
+      });
     }
   };
 
@@ -250,6 +302,17 @@ function Users() {
           )}
         </tbody>
       </table>
+
+      <ConfirmModal
+        show={modalState.show}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        confirmText={modalState.confirmText}
+        cancelText={modalState.cancelText}
+        onConfirm={modalState.onConfirm}
+        onCancel={modalState.onCancel}
+      />
     </div>
   );
 }

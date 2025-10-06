@@ -5,6 +5,8 @@ import DonorsModal from "./DonorsModal";
 import MoneyDonorsModal from "./MoneyDonorsModal";
 import ModalCambioEspacio from "./ModalCambioEspacio"; // Importé el modal para mover ubicación
 import Select from 'react-select'; // Importar react-select
+import ConfirmModal from "./ConfirmModal";
+import { useConfirmModal } from "../hooks/useConfirmModal";
 
 /* ===== Modal reutilizable (en el mismo archivo) ===== */
 function Modal({ open, onClose, title, children }) {
@@ -51,6 +53,7 @@ function Inventory() {
   const [categoriaFiltro, setCategoriaFiltro] = useState("");
   const [almacenFiltro, setAlmacenFiltro] = useState("");
   const [montoAnimado, setMontoAnimado] = useState(0);
+  const { modalState, showConfirm, showAlert } = useConfirmModal();
   const [modalAbierto, setModalAbierto] = useState(false);
   const [articuloSeleccionado, setArticuloSeleccionado] = useState(null);
   const [modalDineroAbierto, setModalDineroAbierto] = useState(false);
@@ -337,14 +340,24 @@ function Inventory() {
       }
     }
 
-    if (!window.confirm(mensajeConfirmacion)) {
+    const confirmed = await showConfirm({
+      title: "Eliminar Donación",
+      message: mensajeConfirmacion,
+      type: "alert"
+    });
+
+    if (!confirmed) {
       return;
     }
 
     try {
       await axios.delete(`/donaciones/${donacion.id_donacion}`);
       
-      alert("Donación eliminada con éxito");
+      await showAlert({
+        title: "Éxito",
+        message: "Donación eliminada con éxito",
+        type: "success"
+      });
       
       // Recargar datos
       if (vista === "porEstante") {
@@ -354,9 +367,17 @@ function Inventory() {
       console.error("Error al eliminar la donación:", error);
       
       if (error.response?.status === 400) {
-        alert(error.response.data.details);
+        await showAlert({
+          title: "Error",
+          message: error.response.data.details,
+          type: "error"
+        });
       } else {
-        alert("No se pudo eliminar la donación");
+        await showAlert({
+          title: "Error",
+          message: "No se pudo eliminar la donación",
+          type: "error"
+        });
       }
     }
   };
@@ -367,7 +388,11 @@ function Inventory() {
       const response = await axios.put(`/espacios/${id_espacio}/llenar`);
       console.log('✅ Respuesta del servidor:', response.data);
       
-      alert("Espacio marcado como lleno");
+      await showAlert({
+        title: "Éxito",
+        message: "Espacio marcado como lleno",
+        type: "success"
+      });
       
       // Recargar los datos
       if (vista === "porEstante") {
@@ -377,7 +402,11 @@ function Inventory() {
     } catch (error) {
       console.error("Error al marcar espacio como lleno:", error);
       console.error("Detalles del error:", error.response?.data);
-      alert("No se pudo marcar el espacio como lleno");
+      await showAlert({
+        title: "Error",
+        message: "No se pudo marcar el espacio como lleno",
+        type: "error"
+      });
     }
   };
 
@@ -388,7 +417,11 @@ function Inventory() {
       const response = await axios.put(`/espacios/${id_espacio}/vaciar`);
       console.log('✅ Respuesta del servidor:', response.data);
       
-      alert("Espacio marcado como con espacio disponible");
+      await showAlert({
+        title: "Éxito",
+        message: "Espacio marcado como con espacio disponible",
+        type: "success"
+      });
       
       // Recargar los datos
       if (vista === "porEstante") {
@@ -398,7 +431,11 @@ function Inventory() {
     } catch (error) {
       console.error("Error al marcar espacio como vacío:", error);
       console.error("Detalles del error:", error.response?.data);
-      alert("No se pudo marcar el espacio como con espacio disponible");
+      await showAlert({
+        title: "Error",
+        message: "No se pudo marcar el espacio como con espacio disponible",
+        type: "error"
+      });
     }
   };
 
@@ -1189,6 +1226,17 @@ function Inventory() {
           }}
         />
       )}
+
+      <ConfirmModal
+        show={modalState.show}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        confirmText={modalState.confirmText}
+        cancelText={modalState.cancelText}
+        onConfirm={modalState.onConfirm}
+        onCancel={modalState.onCancel}
+      />
     </div>
   );
 }

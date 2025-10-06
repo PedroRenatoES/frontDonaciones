@@ -8,6 +8,9 @@ import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import { FaEdit, FaTrash } from "react-icons/fa"; // Importar íconos de edición y eliminación
+import ConfirmModal from "./ConfirmModal";
+import { useConfirmModal } from "../hooks/useConfirmModal";
+import { useSimpleSecurity } from "../hooks/useSimpleSecurity";
 
 function Almacenes() {
   const [almacenes, setAlmacenes] = useState([]);
@@ -15,6 +18,19 @@ function Almacenes() {
   const [almacenFiltro, setAlmacenFiltro] = useState("");
   const [itemsFiltrados, setItemsFiltrados] = useState([]);
   const [categorias, setCategorias] = useState([]);
+  const { modalState, showConfirm, showAlert } = useConfirmModal();
+  const { isAdmin, userRole, logActivity } = useSimpleSecurity();
+
+  // Verificar acceso de admin
+  useEffect(() => {
+    if (userRole !== null && !isAdmin) {
+      logActivity('ACCESS_DENIED_INSUFFICIENT_ROLE', { 
+        requiredRole: 'admin',
+        currentRole: userRole
+      });
+      window.location.href = '/dashboard';
+    }
+  }, [isAdmin, userRole, logActivity]);
   const [estantes, setEstantes] = useState([]);
   const [estanteFiltro, setEstanteFiltro] = useState("");
   const [idAlmacenSeleccionado, setIdAlmacenSeleccionado] = useState(null);
@@ -297,17 +313,33 @@ function Almacenes() {
   };
 
   const handleEliminarAlmacen = async (id) => {
-    if (!window.confirm("¿Estás seguro de que deseas eliminar este almacén?"))
-      return;
+    const confirmed = await showConfirm({
+      title: "Eliminar Almacén",
+      message: "¿Estás seguro de que deseas eliminar este almacén?",
+      type: "alert"
+    });
+
+    if (!confirmed) return;
 
     try {
       await axios.delete(`/almacenes/${id}`);
+
+      await showAlert({
+        title: "Éxito",
+        message: "Almacén eliminado correctamente",
+        type: "success"
+      });
 
       // Actualizar la lista de almacenes
       const res = await axios.get("/almacenes");
       setAlmacenes(res.data);
     } catch (error) {
       console.error("Error al eliminar el almacén:", error);
+      await showAlert({
+        title: "Error",
+        message: "No se pudo eliminar el almacén",
+        type: "error"
+      });
     }
   };
 
@@ -953,6 +985,17 @@ function Almacenes() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        show={modalState.show}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        confirmText={modalState.confirmText}
+        cancelText={modalState.cancelText}
+        onConfirm={modalState.onConfirm}
+        onCancel={modalState.onCancel}
+      />
     </div>
   );
 }
