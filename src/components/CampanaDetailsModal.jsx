@@ -22,7 +22,7 @@ function CampanaDetailsModal({ show, onClose, campana, formatearFecha }) {
     // Cargar donaciones en dinero
     axios
       .get(
-        `http://localhost:5000/api/donaciones-en-dinero/por-campana/${campana.id_campana}`
+        `http://localhost:5001/api/donaciones-en-dinero/por-campana/${campana.id_campana}`
       )
       .then((res) => setDonacionesDinero(res.data))
       .catch((err) => console.error(err));
@@ -30,7 +30,7 @@ function CampanaDetailsModal({ show, onClose, campana, formatearFecha }) {
     // Cargar donaciones en especie
     axios
       .get(
-        `http://localhost:5000/api/donaciones-en-especie/por-campana/${campana.id_campana}`
+        `http://localhost:5001/api/donaciones-en-especie/por-campana/${campana.id_campana}`
       )
       .then((res) => setDonacionesEspecie(res.data))
       .catch((err) => console.error(err))

@@ -60,7 +60,7 @@ function Navbar({ usuario, onLogout }) {
 
         const idAlmacen = almacenUsuario.data[0].id_almacen;
 
-        const response = await axios.get(`http://localhost:5000/api/inventario/ubicaciones?idAlmacen=${idAlmacen}`);
+        const response = await axios.get(`http://localhost:5001/api/inventario/ubicaciones?idAlmacen=${idAlmacen}`);
         const inventario = response.data;
         const bajoStock = inventario.filter(item => item.cantidad_total < 20);
 

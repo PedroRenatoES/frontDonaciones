@@ -30,7 +30,7 @@ const PackageItem = ({ paquete, donacionesEspecie, catalogoArticulos, onCompleta
 
   const cargarDetallesPaquete = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/paquetes/${paquete.id_paquete}`);
+      const res = await fetch(`http://localhost:5001/api/paquetes/${paquete.id_paquete}`);
       if (!res.ok) throw new Error('Error al obtener detalles del paquete');
       const data = await res.json();
       setDetallesPaquete(data);
