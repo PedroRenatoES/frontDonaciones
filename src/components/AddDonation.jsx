@@ -109,6 +109,7 @@ const [formData, setFormData] = useState({
   id_campana: '',
   tipo_donacion: '',
 });
+const [donationNotice, setDonationNotice] = useState({ success: '', error: '' });
 
 // Modal para crear un nuevo donante
 const [editMode, setEditMode] = useState(false);
@@ -121,6 +122,7 @@ const [donorFormData, setDonorFormData] = useState({
   usuario: '',
   contraseña_hash: '',
 });
+const [donorNotice, setDonorNotice] = useState({ success: '', error: '' });
 
 const handleCreateDonor = async () => {
   if (loading) return; // evita múltiples clics
@@ -132,11 +134,10 @@ const handleCreateDonor = async () => {
     setDonorModalOpen(false);
     setDonantes(prev => [...prev, newDonor]);
     setFormData(prev => ({ ...prev, id_donante: newDonor.id_donante }));
-
-    alert('Donante registrado con éxito');
+    setDonorNotice({ success: 'Donante registrado con éxito', error: '' });
   } catch (error) {
     console.error('Error al crear donante desde donación', error);
-    alert('Error al registrar el donante');
+    setDonorNotice({ success: '', error: 'Error al registrar el donante' });
   } finally {
     setLoading(false);
   }
@@ -178,12 +179,11 @@ const handleSubmit = async () => {
     console.log('Payload enviado a', endpoint, ':', specificPayload);
     
     await axios.put(endpoint, specificPayload);
-    
-    alert('Donación registrada con éxito');
+    setDonationNotice({ success: 'Donación registrada con éxito', error: '' });
   } catch (error) {
     console.error(error.response?.data || error.message);
     console.error('Error al guardar la donación:', error);
-    alert('Error al guardar la donación');
+    setDonationNotice({ success: '', error: 'Error al guardar la donación' });
   }
 };
 
@@ -309,6 +309,18 @@ const [campañas, setCampañas] = useState([]);
           <button className="submit-btn" onClick={handleSubmit}>
             Guardar Donación
           </button>
+          {donationNotice && donationNotice.success && (
+            <div className="text-success" style={{ marginTop: 8 }}>{donationNotice.success}</div>
+          )}
+          {donationNotice && donationNotice.error && (
+            <div className="text-danger" style={{ marginTop: 8 }}>{donationNotice.error}</div>
+          )}
+          {donorNotice.success && (
+            <div className="text-success" style={{ marginTop: 8 }}>{donorNotice.success}</div>
+          )}
+          {donorNotice.error && (
+            <div className="text-danger" style={{ marginTop: 8 }}>{donorNotice.error}</div>
+          )}
         </div>
       </div>
       
@@ -355,6 +367,9 @@ const [campañas, setCampañas] = useState([]);
         setFormData={setDonorFormData}
         editMode={editMode}
         loading={loading}
+        serverError={donorNotice.error}
+        serverSuccess={donorNotice.success}
+        clearNotices={() => setDonorNotice({ success: '', error: '' })}
       />
 
       {/* MODAL CAMPAÑA */}

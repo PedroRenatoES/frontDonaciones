@@ -4,13 +4,14 @@ import '../styles/Donors.css';
 
 Modal.setAppElement('#root');
 
-function DonorFormModal({ isOpen, onClose, onSubmit, formData, setFormData, editMode, loading }) {
+function DonorFormModal({ isOpen, onClose, onSubmit, formData, setFormData, editMode, loading, serverError, serverSuccess, clearNotices }) {
   const [errors, setErrors] = useState({});
 
   // Expresiones regulares
   const soloLetras = /^[a-zA-ZÁÉÍÓÚÑáéíóúñ\s]*$/;
   const soloNumeros = /^\d*$/;
   const letrasYNumeros = /^[a-zA-Z0-9]*$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const handleChange = (field, value, regex, mensajeError) => {
     if (regex.test(value)) {
@@ -23,6 +24,18 @@ function DonorFormModal({ isOpen, onClose, onSubmit, formData, setFormData, edit
 
   const getInputClass = field => (errors[field] ? 'form-control error' : 'form-control');
 
+  const validateOnSubmit = () => {
+    const newErrors = {};
+    if (!formData.nombres || !soloLetras.test(formData.nombres)) newErrors.nombres = 'Solo se permiten letras y espacios.';
+    if (!formData.apellido_paterno || !soloLetras.test(formData.apellido_paterno)) newErrors.apellido_paterno = 'Solo se permiten letras y espacios.';
+    if (!formData.apellido_materno || !soloLetras.test(formData.apellido_materno)) newErrors.apellido_materno = 'Solo se permiten letras y espacios.';
+    if (!formData.correo || !emailRegex.test(formData.correo)) newErrors.correo = 'Ingresa un correo válido.';
+    if (!formData.telefono || !soloNumeros.test(formData.telefono)) newErrors.telefono = 'Solo se permiten números.';
+    if (!formData.usuario || !letrasYNumeros.test(formData.usuario)) newErrors.usuario = 'Solo letras y números sin espacios.';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -32,6 +45,9 @@ function DonorFormModal({ isOpen, onClose, onSubmit, formData, setFormData, edit
       overlayClassName="modal-overlay"
     >
       <h2>{editMode ? 'Editar Donante' : 'Registrar Donante'}</h2>
+
+      {serverSuccess && <div className="alert-success" style={{ marginBottom: 10 }}>{serverSuccess}</div>}
+      {serverError && <div className="alert-error" style={{ marginBottom: 10 }}>{serverError}</div>}
 
       {/* Nombres */}
       <div className="form-group">
@@ -80,10 +96,13 @@ function DonorFormModal({ isOpen, onClose, onSubmit, formData, setFormData, edit
         <label>Correo</label>
         <input
           type="email"
-          className="form-control"
+          className={getInputClass('correo')}
           value={formData.correo}
-          onChange={e => setFormData({ ...formData, correo: e.target.value })}
+          onChange={e =>
+            handleChange('correo', e.target.value, emailRegex, 'Ingresa un correo válido.')
+          }
         />
+        {errors.correo && <small className="error-message">{errors.correo}</small>}
       </div>
 
       {/* Teléfono */}
@@ -130,7 +149,10 @@ function DonorFormModal({ isOpen, onClose, onSubmit, formData, setFormData, edit
       <button
         type="button"
         className="btn btn-primary"
-        onClick={onSubmit}
+        onClick={() => {
+          clearNotices && clearNotices();
+          if (validateOnSubmit()) onSubmit();
+        }}
         disabled={loading}
       >
         {loading ? 'Registrando...' : editMode ? 'Guardar Cambios' : 'Registrar Donante'}

@@ -41,6 +41,7 @@ function Almacenes() {
     latitud: null,
     longitud: null,
   });
+  const [erroresAlmacen, setErroresAlmacen] = useState({ nombre: "", ubicacion: "", coordenadas: "" });
   const [estantesAlmacen, setEstantesAlmacen] = useState([]);
   const [estanteSeleccionado, setEstanteSeleccionado] = useState(null);
   const [espaciosEstante, setEspaciosEstante] = useState([]);
@@ -55,6 +56,7 @@ function Almacenes() {
     cantidad_filas: "",
     cantidad_columnas: "",
   });
+  const [erroresEstante, setErroresEstante] = useState({ nombre: "", cantidad_filas: "", cantidad_columnas: "" });
   const [espacioFiltro, setEspacioFiltro] = useState("");
 
   const [modalAbierto, setModalAbierto] = useState(false);
@@ -244,12 +246,18 @@ function Almacenes() {
   const handleCrearAlmacen = async () => {
     const { nombre, ubicacion, latitud, longitud } = nuevoAlmacen;
 
-    if (!nombre || !ubicacion || latitud === null || longitud === null) {
-      alert(
-        "Todos los campos son obligatorios, incluyendo la selección de un punto en el mapa."
-      );
-      return;
+    const errores = { nombre: "", ubicacion: "", coordenadas: "" };
+    if (!nombre || !nombreAlmacenRegex.test(nombre)) {
+      errores.nombre = "Nombre inválido (3-80 caracteres, sin símbolos especiales)";
     }
+    if (!ubicacion || !ubicacionRegex.test(ubicacion)) {
+      errores.ubicacion = "Ubicación inválida (3-120 caracteres, evita símbolos especiales)";
+    }
+    if (latitud === null || longitud === null) {
+      errores.coordenadas = "Selecciona un punto en el mapa";
+    }
+    setErroresAlmacen(errores);
+    if (errores.nombre || errores.ubicacion || errores.coordenadas) return;
 
     try {
       await axios.post("/almacenes", {
@@ -266,6 +274,7 @@ function Almacenes() {
         latitud: null,
         longitud: null,
       });
+      setErroresAlmacen({ nombre: "", ubicacion: "", coordenadas: "" });
       setModalVisible(false);
 
       // Refrescar lista de almacenes
@@ -273,6 +282,7 @@ function Almacenes() {
       setAlmacenes(res.data);
     } catch (error) {
       console.error("Error al crear el almacén:", error);
+      setErroresAlmacen((prev) => ({ ...prev, nombre: prev.nombre || "No se pudo crear el almacén" }));
     }
   };
 
@@ -356,6 +366,7 @@ function Almacenes() {
   const handleMapClick = (e) => {
     const { lat, lng } = e.latlng;
     setNuevoAlmacen((prev) => ({ ...prev, latitud: lat, longitud: lng }));
+    setErroresAlmacen((prev) => ({ ...prev, coordenadas: "" }));
   };
 
   const MapClickHandler = () => {
@@ -365,6 +376,33 @@ function Almacenes() {
     return null;
   };
 
+  // Reglas y helpers de validación visual
+  const nombreAlmacenRegex = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 ,.-]{3,80}$/;
+  const ubicacionRegex = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 #,.-]{3,120}$/;
+
+  const validarCampoAlmacen = (campo, valor) => {
+    let mensaje = "";
+    if (campo === "nombre") {
+      if (!valor || !nombreAlmacenRegex.test(valor)) {
+        mensaje = "Nombre inválido (3-80 caracteres, sin símbolos especiales)";
+      }
+    }
+    if (campo === "ubicacion") {
+      if (!valor || !ubicacionRegex.test(valor)) {
+        mensaje = "Ubicación inválida (3-120 caracteres, evita símbolos especiales)";
+      }
+    }
+    setErroresAlmacen((prev) => ({ ...prev, [campo]: mensaje }));
+  };
+
+  const isAlmacenFormValid = () => {
+    const { nombre, ubicacion, latitud, longitud } = nuevoAlmacen;
+    const nombreOk = nombre && nombreAlmacenRegex.test(nombre);
+    const ubicacionOk = ubicacion && ubicacionRegex.test(ubicacion);
+    const coordsOk = latitud !== null && longitud !== null;
+    return !!(nombreOk && ubicacionOk && coordsOk);
+  };
+
   const handleAbrirModalCrearEstante = () => {
     setMostrarModalCrear(true);
   };
@@ -372,6 +410,7 @@ function Almacenes() {
   const handleCerrarModalCrearEstante = () => {
     setMostrarModalCrear(false);
     setNuevoEstante({ nombre: "", cantidad_filas: "", cantidad_columnas: "" });
+    setErroresEstante({ nombre: "", cantidad_filas: "", cantidad_columnas: "" });
   };
 
   const handleInputChange = (e) => {
@@ -381,10 +420,22 @@ function Almacenes() {
 
   const handleCrearEstante = async () => {
     const { nombre, cantidad_filas, cantidad_columnas } = nuevoEstante;
-    if (!nombre || !cantidad_filas || !cantidad_columnas) {
-      alert("Todos los campos son obligatorios");
-      return;
+    const nuevosErrores = { nombre: "", cantidad_filas: "", cantidad_columnas: "" };
+    const nombreRegex = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 ,.-]{3,60}$/;
+    if (!nombre || !nombreRegex.test(nombre)) {
+      nuevosErrores.nombre = "Ingresa un nombre válido (3-60 caracteres, sin símbolos especiales)";
     }
+    const filasNum = parseInt(cantidad_filas, 10);
+    if (!filasNum || filasNum < 1 || filasNum > 200) {
+      nuevosErrores.cantidad_filas = "Filas debe ser un entero entre 1 y 200";
+    }
+    const columnasNum = parseInt(cantidad_columnas, 10);
+    if (!columnasNum || columnasNum < 1 || columnasNum > 200) {
+      nuevosErrores.cantidad_columnas = "Columnas debe ser un entero entre 1 y 200";
+    }
+
+    setErroresEstante(nuevosErrores);
+    if (nuevosErrores.nombre || nuevosErrores.cantidad_filas || nuevosErrores.cantidad_columnas) return;
 
     try {
       await axios.post("/estantes", {
@@ -397,7 +448,7 @@ function Almacenes() {
       handleCerrarModalCrearEstante();
     } catch (error) {
       console.error("Error al crear estante:", error);
-      alert("No se pudo crear el estante");
+      setErroresEstante((prev) => ({ ...prev, nombre: prev.nombre || "No se pudo crear el estante" }));
     }
   };
 
@@ -514,24 +565,32 @@ function Almacenes() {
               <label htmlFor="nombreAlmacen" className="form-label">
                 Nombre del Almacén
               </label>
-              <input
+                  <input
                 type="text"
                 id="nombreAlmacen"
-                className="form-control"
+                    className={`form-control ${erroresAlmacen.nombre ? "is-invalid" : nuevoAlmacen.nombre ? "is-valid" : ""}`}
+                    maxLength={80}
+                    pattern={nombreAlmacenRegex.source}
                 value={nuevoAlmacen.nombre}
                 onChange={(e) =>
                   setNuevoAlmacen({ ...nuevoAlmacen, nombre: e.target.value })
                 }
+                onBlur={(e) => validarCampoAlmacen("nombre", e.target.value)}
               />
+              {erroresAlmacen.nombre && (
+                <div className="invalid-feedback">{erroresAlmacen.nombre}</div>
+              )}
             </div>
             <div className="mb-3">
               <label htmlFor="ubicacion" className="form-label">
                 Ubicación
               </label>
-              <input
+                  <input
                 type="text"
                 id="ubicacion"
-                className="form-control"
+                    className={`form-control ${erroresAlmacen.ubicacion ? "is-invalid" : nuevoAlmacen.ubicacion ? "is-valid" : ""}`}
+                    maxLength={120}
+                    pattern={ubicacionRegex.source}
                 value={nuevoAlmacen.ubicacion}
                 onChange={(e) =>
                   setNuevoAlmacen({
@@ -539,7 +598,11 @@ function Almacenes() {
                     ubicacion: e.target.value,
                   })
                 }
+                onBlur={(e) => validarCampoAlmacen("ubicacion", e.target.value)}
               />
+              {erroresAlmacen.ubicacion && (
+                <div className="invalid-feedback">{erroresAlmacen.ubicacion}</div>
+              )}
             </div>
             <div className="mb-3">
               <label>Seleccionar ubicación en el mapa</label>
@@ -565,17 +628,24 @@ function Almacenes() {
                   {nuevoAlmacen.longitud}
                 </p>
               )}
+              {erroresAlmacen.coordenadas && (
+                <div className="text-danger small mt-1">{erroresAlmacen.coordenadas}</div>
+              )}
             </div>
             <div className="almacen-modal-footer">
               <button
                 className="almacen-btn-secundary"
-                onClick={() => setModalVisible(false)}
+                onClick={() => {
+                  setModalVisible(false);
+                  setErroresAlmacen({ nombre: "", ubicacion: "", coordenadas: "" });
+                }}
               >
                 Cerrar
               </button>
               <button
                 className="almacen-btn-confirmar"
                 onClick={handleCrearAlmacen}
+                disabled={!isAlmacenFormValid()}
               >
                 Crear Almacén
               </button>
@@ -862,31 +932,45 @@ function Almacenes() {
                   <label className="form-label">Nombre del estante</label>
                   <input
                     type="text"
-                    className="form-control"
+                    className={`form-control ${erroresEstante.nombre ? "is-invalid" : nuevoEstante.nombre ? "is-valid" : ""}`}
+                    maxLength={60}
                     name="nombre"
                     value={nuevoEstante.nombre}
                     onChange={handleInputChange}
                   />
+                  {erroresEstante.nombre && (
+                    <div className="invalid-feedback">{erroresEstante.nombre}</div>
+                  )}
                 </div>
                 <div className="mb-3">
                   <label className="form-label">Cantidad de filas</label>
                   <input
                     type="number"
-                    className="form-control"
+                    className={`form-control ${erroresEstante.cantidad_filas ? "is-invalid" : nuevoEstante.cantidad_filas ? "is-valid" : ""}`}
+                    min={1}
+                    max={200}
                     name="cantidad_filas"
                     value={nuevoEstante.cantidad_filas}
                     onChange={handleInputChange}
                   />
+                  {erroresEstante.cantidad_filas && (
+                    <div className="invalid-feedback">{erroresEstante.cantidad_filas}</div>
+                  )}
                 </div>
                 <div className="mb-3">
                   <label className="form-label">Cantidad de columnas</label>
                   <input
                     type="number"
-                    className="form-control"
+                    className={`form-control ${erroresEstante.cantidad_columnas ? "is-invalid" : nuevoEstante.cantidad_columnas ? "is-valid" : ""}`}
+                    min={1}
+                    max={200}
                     name="cantidad_columnas"
                     value={nuevoEstante.cantidad_columnas}
                     onChange={handleInputChange}
                   />
+                  {erroresEstante.cantidad_columnas && (
+                    <div className="invalid-feedback">{erroresEstante.cantidad_columnas}</div>
+                  )}
                 </div>
               </div>
               <div className="modal-footer">
@@ -899,6 +983,11 @@ function Almacenes() {
                 <button
                   className="btn btn-primary"
                   onClick={handleCrearEstante}
+                  disabled={
+                    !nuevoEstante.nombre ||
+                    !nuevoEstante.cantidad_filas ||
+                    !nuevoEstante.cantidad_columnas
+                  }
                 >
                   Crear
                 </button>
@@ -919,18 +1008,26 @@ function Almacenes() {
               <label className="form-label">Nombre del Almacén</label>
               <input
                 type="text"
-                className="form-control"
+                className={`form-control ${erroresAlmacen.nombre ? "is-invalid" : nuevoAlmacen.nombre ? "is-valid" : ""}`}
+                maxLength={80}
+                pattern={nombreAlmacenRegex.source}
                 value={nuevoAlmacen.nombre}
                 onChange={(e) =>
                   setNuevoAlmacen({ ...nuevoAlmacen, nombre: e.target.value })
                 }
+                onBlur={(e) => validarCampoAlmacen("nombre", e.target.value)}
               />
+              {erroresAlmacen.nombre && (
+                <div className="invalid-feedback">{erroresAlmacen.nombre}</div>
+              )}
             </div>
             <div className="mb-3">
               <label className="form-label">Ubicación</label>
               <input
                 type="text"
-                className="form-control"
+                className={`form-control ${erroresAlmacen.ubicacion ? "is-invalid" : nuevoAlmacen.ubicacion ? "is-valid" : ""}`}
+                maxLength={120}
+                pattern={ubicacionRegex.source}
                 value={nuevoAlmacen.ubicacion}
                 onChange={(e) =>
                   setNuevoAlmacen({
@@ -938,7 +1035,11 @@ function Almacenes() {
                     ubicacion: e.target.value,
                   })
                 }
+                onBlur={(e) => validarCampoAlmacen("ubicacion", e.target.value)}
               />
+              {erroresAlmacen.ubicacion && (
+                <div className="invalid-feedback">{erroresAlmacen.ubicacion}</div>
+              )}
             </div>
             <div className="mb-3">
               <label>Seleccionar ubicación en el mapa</label>
@@ -967,11 +1068,31 @@ function Almacenes() {
                   {nuevoAlmacen.longitud}
                 </p>
               )}
+              {(!nuevoAlmacen.latitud || !nuevoAlmacen.longitud) && erroresAlmacen.coordenadas && (
+                <div className="text-danger small mt-1">{erroresAlmacen.coordenadas}</div>
+              )}
             </div>
             <div className="d-flex justify-content-between">
               <button
                 className="btn btn-success"
-                onClick={handleGuardarEdicion}
+                onClick={() => {
+                  // Validar antes de guardar
+                  const errores = { nombre: "", ubicacion: "", coordenadas: "" };
+                  if (!nuevoAlmacen.nombre || !nombreAlmacenRegex.test(nuevoAlmacen.nombre)) {
+                    errores.nombre = "Nombre inválido (3-80 caracteres, sin símbolos especiales)";
+                  }
+                  if (!nuevoAlmacen.ubicacion || !ubicacionRegex.test(nuevoAlmacen.ubicacion)) {
+                    errores.ubicacion = "Ubicación inválida (3-120 caracteres, evita símbolos especiales)";
+                  }
+                  if (nuevoAlmacen.latitud === null || nuevoAlmacen.longitud === null) {
+                    errores.coordenadas = "Selecciona un punto en el mapa";
+                  }
+                  setErroresAlmacen(errores);
+                  if (!errores.nombre && !errores.ubicacion && !errores.coordenadas) {
+                    handleGuardarEdicion();
+                  }
+                }}
+                disabled={!isAlmacenFormValid()}
               >
                 Guardar
               </button>
