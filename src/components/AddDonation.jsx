@@ -139,7 +139,8 @@ const handleCreateDonor = async () => {
     setDonorModalOpen(false);
     setDonantes(prev => [...prev, newDonor]);
     setFormData(prev => ({ ...prev, id_donante: newDonor.id_donante }));
-    setDonorNotice({ success: 'Donante registrado con éxito', error: '' });
+    // Limpiar notificaciones ya que no se muestra modal de éxito
+    setDonorNotice({ success: '', error: '' });
   } catch (error) {
     console.error('Error al crear donante desde donación', error);
     setDonorNotice({ success: '', error: 'Error al registrar el donante' });

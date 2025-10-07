@@ -3,8 +3,6 @@ import axios from '../axios';
 import '../styles/Login.css';
 import '../styles/FadeOverlay.css';
 import { useSecurity } from '../hooks/useSecurity';
-import { validateAndSanitize } from '../utils/security';
-import { getSchema } from '../utils/validationSchemas';
 import ConfirmModal from './ConfirmModal';
 import { useConfirmModal } from '../hooks/useConfirmModal';
 
@@ -36,9 +34,28 @@ function Login({ onLogin }) {
   }, []);
 
   const handleLogin = async () => {
-    // Validar que la contraseña tenga al menos 12 caracteres
-    if (!contrasena || contrasena.length < 12) {
-      setError('La contraseña debe tener al menos 12 caracteres');
+    // Validaciones básicas simples
+    if (!ci || ci.trim() === '') {
+      await showAlert({ 
+        title: 'Campo requerido', 
+        message: 'Debe ingresar su número de cédula', 
+        type: 'alert', 
+        confirmText: 'Entendido' 
+      });
+      return;
+    }
+
+    if (!contrasena || contrasena.trim() === '') {
+      await showAlert({ 
+        title: 'Campo requerido', 
+        message: 'Debe ingresar su contraseña', 
+        type: 'alert', 
+        confirmText: 'Entendido' 
+      });
+      return;
+    }
+
+    if (contrasena.length < 12) {
       await showAlert({ 
         title: 'Contraseña inválida', 
         message: 'La contraseña debe tener al menos 12 caracteres', 
@@ -48,29 +65,27 @@ function Login({ onLogin }) {
       return;
     }
 
-    // Validar datos de entrada
-    const loginData = { ci, contrasena };
-    const schema = getSchema('login');
-    const validation = validateAndSanitize(loginData, schema);
-    
-    if (!validation.isValid) {
-      setValidationErrors(validation.errors);
-      logActivity('LOGIN_VALIDATION_FAILED', { errors: validation.errors });
-      return;
-    }
-
     if (!almacenSeleccionado) {
-      setError('Debe seleccionar un almacén.');
+      await showAlert({ 
+        title: 'Almacén requerido', 
+        message: 'Debe seleccionar un almacén', 
+        type: 'alert', 
+        confirmText: 'Entendido' 
+      });
       return;
     }
 
     try {
-      // Usar datos sanitizados
-      const sanitizedData = validation.data;
+      // Datos simples para enviar
+      const loginData = {
+        ci: ci.trim(),
+        contrasena: contrasena.trim(),
+        almacen_id: almacenSeleccionado
+      };
       
-      logActivity('LOGIN_ATTEMPT', { ci: sanitizedData.ci });
+      console.log('Enviando datos de login:', loginData);
       
-      const response = await axios.post('/auth/login', sanitizedData);
+      const response = await axios.post('/auth/login', loginData);
 
       if (response.status === 200) {
         const usuario = response.data.usuario;
@@ -90,7 +105,7 @@ function Login({ onLogin }) {
         localStorage.setItem('usuario', JSON.stringify(usuario));
         localStorage.setItem('id', usuario.id);
         localStorage.setItem('cambiarPassword', response.data.cambiarPassword ? 'true' : 'false');
-        localStorage.setItem('ci', sanitizedData.ci);
+        localStorage.setItem('ci', loginData.ci);
         
         if (usuario.rol === 2) {
           localStorage.setItem('almacen', 'Almacen Rapido');
@@ -107,13 +122,81 @@ function Login({ onLogin }) {
         }, 2500);
       }
     } catch (error) {
-      logActivity('LOGIN_FAILED', { 
-        ci: loginData.ci, 
-        error: error.response?.data?.error || 'Error desconocido'
+      console.error('Error completo en login:', error);
+      console.error('Response data:', error.response?.data);
+      console.error('Response status:', error.response?.status);
+      
+      let errorMessage = 'Error en el login';
+      let alertTitle = 'Error de Login';
+      
+      // Verificar si hay respuesta del servidor
+      if (error.response?.data) {
+        const serverData = error.response.data;
+        console.log('Datos del servidor:', serverData);
+        
+        // Buscar mensaje de error en diferentes campos posibles
+        const serverMessage = serverData.error || serverData.message || serverData.detail || '';
+        console.log('Mensaje del servidor:', serverMessage);
+        
+        // Convertir a minúsculas para comparación
+        const messageLower = serverMessage.toLowerCase();
+        
+        if (messageLower.includes('usuario no encontrado') || 
+            messageLower.includes('user not found') ||
+            messageLower.includes('no existe') ||
+            messageLower.includes('not found')) {
+          errorMessage = 'Usuario no encontrado. Verifique su número de cédula.';
+          alertTitle = 'Usuario No Encontrado';
+        } else if (messageLower.includes('contraseña incorrecta') || 
+                   messageLower.includes('password incorrect') ||
+                   messageLower.includes('wrong password')) {
+          errorMessage = 'Contraseña incorrecta. Verifique su contraseña.';
+          alertTitle = 'Contraseña Incorrecta';
+        } else if (messageLower.includes('credenciales incorrectas') || 
+                   messageLower.includes('invalid credentials') ||
+                   messageLower.includes('credenciales')) {
+          errorMessage = 'Credenciales incorrectas. Verifique su usuario y contraseña.';
+          alertTitle = 'Credenciales Incorrectas';
+        } else if (serverMessage) {
+          // Si hay mensaje del servidor, usarlo
+          errorMessage = serverMessage;
+          alertTitle = 'Error del Servidor';
+        }
+      } else if (error.response?.status) {
+        // Manejar por código de estado HTTP
+        switch (error.response.status) {
+          case 401:
+            errorMessage = 'Credenciales incorrectas. Verifique su usuario y contraseña.';
+            alertTitle = 'Acceso Denegado';
+            break;
+          case 404:
+            errorMessage = 'Usuario no encontrado. Verifique su número de cédula.';
+            alertTitle = 'Usuario No Encontrado';
+            break;
+          case 403:
+            errorMessage = 'Acceso denegado. Contacte al administrador.';
+            alertTitle = 'Acceso Denegado';
+            break;
+          case 500:
+            errorMessage = 'Error del servidor. Intente más tarde.';
+            alertTitle = 'Error del Servidor';
+            break;
+          default:
+            errorMessage = `Error del servidor (${error.response.status})`;
+            alertTitle = 'Error del Servidor';
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+        alertTitle = 'Error de Conexión';
+      }
+      
+      setError(errorMessage);
+      await showAlert({ 
+        title: alertTitle, 
+        message: errorMessage, 
+        type: 'alert', 
+        confirmText: 'Entendido' 
       });
-      const msg = error.response?.data?.error || 'Hubo un problema al iniciar sesión';
-      setError(msg);
-      await showAlert({ title: 'Error de inicio de sesión', message: msg, type: 'error', confirmText: 'Entendido' });
     }
   };
 

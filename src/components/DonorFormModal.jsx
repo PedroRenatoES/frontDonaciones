@@ -10,18 +10,8 @@ function DonorFormModal({ isOpen, onClose, onSubmit, formData, setFormData, edit
   const [errors, setErrors] = useState({});
   const { modalState, showAlert } = useConfirmModal();
 
-  // Mostrar modales de éxito/error cuando cambien las props
-  useEffect(() => {
-    if (serverSuccess) {
-      showAlert({
-        title: 'Éxito',
-        message: serverSuccess,
-        type: 'success',
-        confirmText: 'Aceptar'
-      });
-      clearNotices();
-    }
-  }, [serverSuccess, showAlert, clearNotices]);
+  // Mostrar modales de error cuando cambien las props (sin éxito)
+  // useEffect para éxito removido - solo se cierra el modal
 
   useEffect(() => {
     if (serverError) {

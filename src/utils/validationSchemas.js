@@ -14,7 +14,7 @@ export const loginSchema = {
   contrasena: {
     type: 'string',
     required: true,
-    minLength: 6,
+    minLength: 12,
     maxLength: 100,
     preventSQLInjection: true
   }
