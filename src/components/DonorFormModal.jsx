@@ -38,7 +38,6 @@ function DonorFormModal({ isOpen, onClose, onSubmit, formData, setFormData, edit
   // Expresiones regulares
   const soloLetras = /^[a-zA-ZÁÉÍÓÚÑáéíóúñ\s]*$/;
   const soloNumeros = /^\d*$/;
-  const letrasYNumeros = /^[a-zA-Z0-9]*$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const handleChange = (field, value, regex, mensajeError) => {
@@ -55,16 +54,6 @@ function DonorFormModal({ isOpen, onClose, onSubmit, formData, setFormData, edit
     }
   };
 
-  const handlePasswordChange = (value) => {
-    setFormData({ ...formData, contraseña_hash: value });
-    
-    if (value.length > 0 && value.length < 12) {
-      setErrors(prev => ({ ...prev, contraseña_hash: 'La contraseña debe tener al menos 12 caracteres.' }));
-    } else {
-      setErrors(prev => ({ ...prev, contraseña_hash: '' }));
-    }
-  };
-
   const getInputClass = field => (errors[field] ? 'form-control error' : 'form-control');
 
   const validateOnSubmit = () => {
@@ -74,19 +63,23 @@ function DonorFormModal({ isOpen, onClose, onSubmit, formData, setFormData, edit
     if (!formData.apellido_materno || !soloLetras.test(formData.apellido_materno)) newErrors.apellido_materno = 'Solo se permiten letras y espacios.';
     if (!formData.correo || !emailRegex.test(formData.correo)) newErrors.correo = 'Ingresa un correo válido.';
     if (!formData.telefono || !soloNumeros.test(formData.telefono)) newErrors.telefono = 'Solo se permiten números.';
-    if (!formData.usuario || !letrasYNumeros.test(formData.usuario)) newErrors.usuario = 'Solo letras y números sin espacios.';
     
-    // Validación de contraseña solo en modo creación
-    if (!editMode) {
-      if (!formData.contraseña_hash) {
-        newErrors.contraseña_hash = 'La contraseña es requerida.';
-      } else if (formData.contraseña_hash.length < 12) {
-        newErrors.contraseña_hash = 'La contraseña debe tener al menos 12 caracteres.';
-      }
-    }
+    // Eliminadas validaciones de usuario y contraseña
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = () => {
+    if (validateOnSubmit()) {
+      // Preparar datos con usuario y contraseña como null
+      const submitData = {
+        ...formData,
+        usuario: null,
+        contraseña_hash: null
+      };
+      onSubmit(submitData);
+    }
   };
 
   return (
@@ -149,7 +142,6 @@ function DonorFormModal({ isOpen, onClose, onSubmit, formData, setFormData, edit
           className={getInputClass('correo')}
           value={formData.correo}
           onChange={e => setFormData(prev => ({ ...prev, correo: e.target.value }))}
-          onBlur={e => handleEmailBlur(e.target.value)}
         />
         {errors.correo && <small className="error-message">{errors.correo}</small>}
       </div>
@@ -168,40 +160,14 @@ function DonorFormModal({ isOpen, onClose, onSubmit, formData, setFormData, edit
         {errors.telefono && <small className="error-message">{errors.telefono}</small>}
       </div>
 
-      {/* Usuario */}
-      <div className="form-group">
-        <label>Usuario</label>
-        <input
-          type="text"
-          className={getInputClass('usuario')}
-          value={formData.usuario}
-          onChange={e =>
-            handleChange('usuario', e.target.value, letrasYNumeros, 'Solo letras y números sin espacios.')
-          }
-        />
-        {errors.usuario && <small className="error-message">{errors.usuario}</small>}
-      </div>
-
-      {/* Contraseña */}
-      {!editMode && (
-        <div className="form-group">
-          <label>Contraseña</label>
-          <input
-            type="password"
-            className={getInputClass('contraseña_hash')}
-            value={formData.contraseña_hash}
-            onChange={e => handlePasswordChange(e.target.value)}
-          />
-          {errors.contraseña_hash && <small className="error-message">{errors.contraseña_hash}</small>}
-        </div>
-      )}
+      {/* Campos de usuario y contraseña ELIMINADOS */}
 
       <button
         type="button"
         className="btn btn-primary"
         onClick={() => {
           clearNotices && clearNotices();
-          if (validateOnSubmit()) onSubmit();
+          handleSubmit();
         }}
         disabled={loading}
       >
