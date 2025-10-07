@@ -16,6 +16,7 @@ const CustomUserModal = ({
 
   const soloLetras = /^[a-zA-ZÁÉÍÓÚÑáéíóúñ\s]*$/;
   const soloNumeros = /^\d*$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
@@ -29,19 +30,35 @@ const CustomUserModal = ({
 
     // Validaciones por campo
     if (['nombres', 'apellido_paterno', 'apellido_materno'].includes(name)) {
-      if (!soloLetras.test(value)) {
+      if (value && !soloLetras.test(value)) {
         error = 'Solo letras y espacios permitidos.';
       }
     }
 
-    if (['telefono', 'ci'].includes(name)) {
-      if (!soloNumeros.test(value)) {
+    if (name === 'telefono') {
+      if (value && !soloNumeros.test(value)) {
         error = 'Solo números permitidos.';
+      } else if (value && value.length < 8) {
+        error = 'El teléfono debe tener al menos 8 dígitos.';
+      }
+    }
+
+    if (name === 'ci') {
+      if (value && !soloNumeros.test(value)) {
+        error = 'Solo números permitidos.';
+      } else if (value && (value.length < 7 || value.length > 10)) {
+        error = 'El CI debe tener entre 7 y 10 dígitos.';
+      }
+    }
+
+    if (name === 'correo') {
+      if (value && !emailRegex.test(value)) {
+        error = 'Ingresa un correo válido.';
       }
     }
 
     if (name === 'contrasena') {
-      if (value.length < 12) {
+      if (value && value.length < 12) {
         error = 'La contraseña debe tener al menos 12 caracteres.';
       }
     }
@@ -52,6 +69,49 @@ const CustomUserModal = ({
 
     setErrors(prev => ({ ...prev, [name]: error }));
     onChange(e);
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    const requiredFields = ['nombres', 'apellido_paterno', 'apellido_materno', 'correo', 'telefono', 'ci'];
+    
+    // Validar campos requeridos
+    requiredFields.forEach(field => {
+      if (!userData[field] || userData[field].trim() === '') {
+        newErrors[field] = 'Este campo es requerido.';
+      }
+    });
+
+    // Validar rol
+    if (!userData.id_rol || userData.id_rol === '') {
+      newErrors.id_rol = 'Debe seleccionar un rol.';
+    }
+
+    // Validaciones específicas
+    if (userData.nombres && !soloLetras.test(userData.nombres)) {
+      newErrors.nombres = 'Solo letras y espacios permitidos.';
+    }
+    if (userData.apellido_paterno && !soloLetras.test(userData.apellido_paterno)) {
+      newErrors.apellido_paterno = 'Solo letras y espacios permitidos.';
+    }
+    if (userData.apellido_materno && !soloLetras.test(userData.apellido_materno)) {
+      newErrors.apellido_materno = 'Solo letras y espacios permitidos.';
+    }
+    if (userData.correo && !emailRegex.test(userData.correo)) {
+      newErrors.correo = 'Ingresa un correo válido.';
+    }
+    if (userData.telefono && (!soloNumeros.test(userData.telefono) || userData.telefono.length < 8)) {
+      newErrors.telefono = 'Teléfono inválido (mínimo 8 dígitos).';
+    }
+    if (userData.ci && (!soloNumeros.test(userData.ci) || userData.ci.length < 7 || userData.ci.length > 10)) {
+      newErrors.ci = 'CI inválido (entre 7 y 10 dígitos).';
+    }
+    if (userData.contrasena && userData.contrasena.length < 12) {
+      newErrors.contrasena = 'La contraseña debe tener al menos 12 caracteres.';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const getInputClass = (name) => errors[name] ? 'error-input' : '';
@@ -102,12 +162,13 @@ const CustomUserModal = ({
 
         <div className="form-group">
           <label>Rol</label>
-          <select name="id_rol" value={userData.id_rol || ''} onChange={onChange}>
+          <select name="id_rol" value={userData.id_rol || ''} onChange={onChange} className={getInputClass('id_rol')}>
             <option value="">Seleccione un rol</option>
             <option value="1">Administrador</option>
             <option value="2">Voluntario</option>
             <option value="3">Almacenista</option>
           </select>
+          {errors.id_rol && <small className="error-message">{errors.id_rol}</small>}
         </div>
 
         <div className="modal-actions">
@@ -116,8 +177,10 @@ const CustomUserModal = ({
             <button className="btn-activate" onClick={onActivate}>Activar Usuario</button>
           ) : (
             <button className="btn-save" onClick={async () => {
-              await onSave();
-              onClose();
+              if (validateForm()) {
+                await onSave();
+                onClose();
+              }
             }}>Guardar</button>
           )}
         </div>

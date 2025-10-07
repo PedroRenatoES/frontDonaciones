@@ -1,11 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Modal from 'react-modal';
 import '../styles/Donors.css';
+import ConfirmModal from './ConfirmModal';
+import { useConfirmModal } from '../hooks/useConfirmModal';
 
 Modal.setAppElement('#root');
 
 function DonorFormModal({ isOpen, onClose, onSubmit, formData, setFormData, editMode, loading, serverError, serverSuccess, clearNotices }) {
   const [errors, setErrors] = useState({});
+  const { modalState, showAlert } = useConfirmModal();
+
+  // Mostrar modales de éxito/error cuando cambien las props
+  useEffect(() => {
+    if (serverSuccess) {
+      showAlert({
+        title: 'Éxito',
+        message: serverSuccess,
+        type: 'success',
+        confirmText: 'Aceptar'
+      });
+      clearNotices();
+    }
+  }, [serverSuccess, showAlert, clearNotices]);
+
+  useEffect(() => {
+    if (serverError) {
+      showAlert({
+        title: 'Error',
+        message: serverError,
+        type: 'error',
+        confirmText: 'Entendido'
+      });
+      clearNotices();
+    }
+  }, [serverError, showAlert, clearNotices]);
 
   // Expresiones regulares
   const soloLetras = /^[a-zA-ZÁÉÍÓÚÑáéíóúñ\s]*$/;
@@ -14,11 +42,26 @@ function DonorFormModal({ isOpen, onClose, onSubmit, formData, setFormData, edit
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const handleChange = (field, value, regex, mensajeError) => {
-    if (regex.test(value)) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-      setFormData(prev => ({ ...prev, [field]: value }));
+    // Always update the form data
+    setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Only validate and show errors for non-email fields
+    if (field !== 'correo') {
+      if (regex.test(value)) {
+        setErrors(prev => ({ ...prev, [field]: '' }));
+      } else {
+        setErrors(prev => ({ ...prev, [field]: mensajeError }));
+      }
+    }
+  };
+
+  const handlePasswordChange = (value) => {
+    setFormData({ ...formData, contraseña_hash: value });
+    
+    if (value.length > 0 && value.length < 12) {
+      setErrors(prev => ({ ...prev, contraseña_hash: 'La contraseña debe tener al menos 12 caracteres.' }));
     } else {
-      setErrors(prev => ({ ...prev, [field]: mensajeError }));
+      setErrors(prev => ({ ...prev, contraseña_hash: '' }));
     }
   };
 
@@ -32,6 +75,16 @@ function DonorFormModal({ isOpen, onClose, onSubmit, formData, setFormData, edit
     if (!formData.correo || !emailRegex.test(formData.correo)) newErrors.correo = 'Ingresa un correo válido.';
     if (!formData.telefono || !soloNumeros.test(formData.telefono)) newErrors.telefono = 'Solo se permiten números.';
     if (!formData.usuario || !letrasYNumeros.test(formData.usuario)) newErrors.usuario = 'Solo letras y números sin espacios.';
+    
+    // Validación de contraseña solo en modo creación
+    if (!editMode) {
+      if (!formData.contraseña_hash) {
+        newErrors.contraseña_hash = 'La contraseña es requerida.';
+      } else if (formData.contraseña_hash.length < 12) {
+        newErrors.contraseña_hash = 'La contraseña debe tener al menos 12 caracteres.';
+      }
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -45,9 +98,6 @@ function DonorFormModal({ isOpen, onClose, onSubmit, formData, setFormData, edit
       overlayClassName="modal-overlay"
     >
       <h2>{editMode ? 'Editar Donante' : 'Registrar Donante'}</h2>
-
-      {serverSuccess && <div className="alert-success" style={{ marginBottom: 10 }}>{serverSuccess}</div>}
-      {serverError && <div className="alert-error" style={{ marginBottom: 10 }}>{serverError}</div>}
 
       {/* Nombres */}
       <div className="form-group">
@@ -98,9 +148,8 @@ function DonorFormModal({ isOpen, onClose, onSubmit, formData, setFormData, edit
           type="email"
           className={getInputClass('correo')}
           value={formData.correo}
-          onChange={e =>
-            handleChange('correo', e.target.value, emailRegex, 'Ingresa un correo válido.')
-          }
+          onChange={e => setFormData(prev => ({ ...prev, correo: e.target.value }))}
+          onBlur={e => handleEmailBlur(e.target.value)}
         />
         {errors.correo && <small className="error-message">{errors.correo}</small>}
       </div>
@@ -139,10 +188,11 @@ function DonorFormModal({ isOpen, onClose, onSubmit, formData, setFormData, edit
           <label>Contraseña</label>
           <input
             type="password"
-            className="form-control"
+            className={getInputClass('contraseña_hash')}
             value={formData.contraseña_hash}
-            onChange={e => setFormData({ ...formData, contraseña_hash: e.target.value })}
+            onChange={e => handlePasswordChange(e.target.value)}
           />
+          {errors.contraseña_hash && <small className="error-message">{errors.contraseña_hash}</small>}
         </div>
       )}
 
@@ -157,6 +207,17 @@ function DonorFormModal({ isOpen, onClose, onSubmit, formData, setFormData, edit
       >
         {loading ? 'Registrando...' : editMode ? 'Guardar Cambios' : 'Registrar Donante'}
       </button>
+      
+      <ConfirmModal
+        show={modalState.show}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        confirmText={modalState.confirmText}
+        cancelText={modalState.cancelText}
+        onConfirm={modalState.onConfirm}
+        onCancel={modalState.onCancel}
+      />
     </Modal>
   );
 }

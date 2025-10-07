@@ -114,7 +114,7 @@ function DonacionDineroForm({ data, setData, nombresCuenta = [], numerosCuenta =
         <div className="form-section">
           <div className="mb-3">
           <label>
-            Imagen de la campaña:
+            Imagen del comprobante:
             <input type="file" accept="image/*" onChange={handleFileChange} required />
           </label>
 

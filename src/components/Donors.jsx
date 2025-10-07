@@ -85,7 +85,12 @@ const fetchDonors = async () => {
       fetchDonors();
       setEditMode(false);
       setSelectedDonorId(null);
-      alert('Donante editado con éxito');
+      await showAlert({
+        title: 'Éxito',
+        message: 'Donante editado con éxito',
+        type: 'success',
+        confirmText: 'Aceptar'
+      });
     } catch (error) {
       console.error('Error al editar donante', error);
     }

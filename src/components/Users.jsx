@@ -98,12 +98,22 @@ function Users() {
       const payload = {
         ...userData,
         id_rol: parseInt(userData.id_rol),
-        estado: userData.estado === 'activo' ? 1 : 0, // Convert estado to number
+        estado: userData.estado === 'activo' ? 1 : 1, // Convert estado to number
       };
 
       console.log('Payload a enviar:', payload);
-      await axios.post('/users/', payload);
-      console.log('Usuario guardado exitosamente');
+      
+      if (editingUserId) {
+        // Editing existing user
+        console.log('Editando usuario con ID:', editingUserId);
+        await axios.put(`/users/${editingUserId}`, payload);
+        console.log('Usuario actualizado exitosamente');
+      } else {
+        // Creating new user
+        console.log('Creando nuevo usuario');
+        await axios.post('/users/', payload);
+        console.log('Usuario creado exitosamente');
+      }
 
       // Mostrar mensaje de éxito y actualizar tabla
       setShowSuccessMessage(true);
@@ -147,7 +157,7 @@ function Users() {
       console.error('Error al activar usuario:', error);
       await showAlert({
         title: "Error",
-        message: "❌ Error al activar usuario. Verifica la consola.",
+        message: "Error al activar usuario.",
         type: "error"
       });
     }

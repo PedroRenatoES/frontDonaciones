@@ -474,7 +474,13 @@ function Inventory() {
         fecha_vencimiento: donacionEditando.fecha_vencimiento,
       });
 
-      alert("Donación actualizada con éxito");
+      await showAlert({
+        title: "Éxito",
+        message: "Donación actualizada con éxito",
+        type: "success",
+        confirmText: "Aceptar"
+      });
+      
       cerrarModalEditar();
       // Recargar datos si es necesario
       if (vista === "porEstante") {
@@ -482,7 +488,12 @@ function Inventory() {
       }
     } catch (error) {
       console.error("Error al actualizar la donación:", error);
-      alert("No se pudo actualizar la donación");
+      await showAlert({
+        title: "Error",
+        message: "No se pudo actualizar la donación",
+        type: "error",
+        confirmText: "Entendido"
+      });
     }
   };
 
@@ -871,9 +882,7 @@ function Inventory() {
                 >
                   Guardar
                 </button>
-                <button className="btn-close" onClick={cerrarModalEditar}>
-                  Cancelar
-                </button>
+                
               </div>
             </>
           )}

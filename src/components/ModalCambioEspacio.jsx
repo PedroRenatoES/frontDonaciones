@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from '../axios';
 import '../styles/ModalCambioEspacio.css'; // Asegúrate de tener este CSS
+import ConfirmModal from './ConfirmModal';
+import { useConfirmModal } from '../hooks/useConfirmModal';
 
 function ModalCambioEspacio({ idDonacion, onClose, onSuccess }) {
   const [almacenes, setAlmacenes] = useState([]);
@@ -11,6 +13,8 @@ function ModalCambioEspacio({ idDonacion, onClose, onSuccess }) {
   const [selectedEstante, setSelectedEstante] = useState('');
   const [selectedEspacio, setSelectedEspacio] = useState('');
   const [error, setError] = useState('');
+  
+  const { modalState, showAlert } = useConfirmModal();
 
   const usuario = JSON.parse(localStorage.getItem('usuario'));
   const esAlmacenista = usuario?.rol === 3;
@@ -61,25 +65,31 @@ function ModalCambioEspacio({ idDonacion, onClose, onSuccess }) {
     }
   }, [selectedEstante]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedEspacio) {
       setError('Selecciona un espacio');
       return;
     }
 
-    axios.put('/donaciones-en-especie/espacio', {
-      id_donacion_especie: idDonacion,
-      id_espacio: parseInt(selectedEspacio),
-    })
-    .then(() => {
-      alert('Espacio actualizado correctamente');
+    try {
+      await axios.put('/donaciones-en-especie/espacio', {
+        id_donacion_especie: idDonacion,
+        id_espacio: parseInt(selectedEspacio),
+      });
+      
+      await showAlert({
+        title: 'Éxito',
+        message: 'Espacio actualizado correctamente',
+        type: 'success',
+        confirmText: 'Aceptar'
+      });
+      
       onSuccess && onSuccess();
       onClose();
-    })
-    .catch(err => {
+    } catch (err) {
       console.error('Error actualizando espacio:', err);
       setError('No se pudo actualizar el espacio');
-    });
+    }
   };
 
   return (
@@ -125,6 +135,17 @@ function ModalCambioEspacio({ idDonacion, onClose, onSuccess }) {
         <button onClick={handleSubmit}>Guardar</button>
         <button className="modal-cambio-espacio__btn-cancelar" onClick={onClose}>Cancelar</button>
       </div>
+      
+      <ConfirmModal
+        show={modalState.show}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        confirmText={modalState.confirmText}
+        cancelText={modalState.cancelText}
+        onConfirm={modalState.onConfirm}
+        onCancel={modalState.onCancel}
+      />
     </div>
   );
 }
