@@ -3,6 +3,7 @@ import axios from '../axios';
 import '../styles/Users.css';
 import UserModal from './UserModal';
 import ConfirmModal from './ConfirmModal';
+import Toast from './Toast';
 import { useConfirmModal } from '../hooks/useConfirmModal';
 import { useSimpleSecurity } from '../hooks/useSimpleSecurity';
 
@@ -11,6 +12,8 @@ function Users() {
   const [users, setUsers] = useState([]);
   const [editingUserId, setEditingUserId] = useState(null);
   const [inactiveUsers, setInactiveUsers] = useState([]);
+  const [toast, setToast] = useState({ show: false, message: '', type: '' });
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const { modalState, showConfirm, showAlert } = useConfirmModal();
   const { isAdmin, userRole, logActivity } = useSimpleSecurity();
 
@@ -66,6 +69,7 @@ function Users() {
   };
 
   const handleModalClose = () => {
+    console.log('handleModalClose ejecutándose...');
     setIsModalOpen(false);
     setEditingUserId(null);
     setUserData({
@@ -80,6 +84,7 @@ function Users() {
       id_rol: '',
       estado: 'activo', // Reset state to default
     });
+    console.log('Modal cerrado y datos reseteados');
   };
 
   const handleChange = (e) => {
@@ -89,28 +94,28 @@ function Users() {
 
   const handleSave = async () => {
     try {
+      console.log('Iniciando guardado de usuario...');
       const payload = {
         ...userData,
         id_rol: parseInt(userData.id_rol),
         estado: userData.estado === 'activo' ? 1 : 0, // Convert estado to number
       };
 
+      console.log('Payload a enviar:', payload);
       await axios.post('/users/', payload);
+      console.log('Usuario guardado exitosamente');
 
-      fetchUsers();
-      handleModalClose();
-      await showAlert({
-        title: "Éxito",
-        message: "Usuario guardado con éxito",
-        type: "success"
-      });
+      // Mostrar mensaje de éxito y actualizar tabla
+      setShowSuccessMessage(true);
+      await fetchUsers();
+      
+      // Ocultar mensaje de éxito después de 3 segundos
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 3000);
     } catch (error) {
       console.error('Error al guardar usuario:', error);
-      await showAlert({
-        title: "Error",
-        message: "Error al guardar usuario",
-        type: "error"
-      });
+      setToast({ show: true, message: 'Error al guardar usuario', type: 'error' });
     }
   };
 
@@ -208,6 +213,12 @@ function Users() {
 
   return (
     <div className="users">
+      <Toast
+        show={toast.show}
+        type={toast.type}
+        message={toast.message}
+        onClose={() => setToast({ show: false, message: '', type: '' })}
+      />
       <h1>Gestión de Usuarios</h1>
 
       <div className="users-controls">
@@ -220,7 +231,21 @@ function Users() {
         </select>
 
 
-        <button className="btn-add-user" onClick={handleModalOpen}>+ Agregar Usuario</button>
+        {showSuccessMessage ? (
+          <div style={{ 
+            color: '#27ae60', 
+            fontWeight: 'bold', 
+            fontSize: '16px',
+            padding: '10px',
+            backgroundColor: '#d5f4e6',
+            borderRadius: '5px',
+            border: '1px solid #27ae60'
+          }}>
+            ✅ Se creó exitosamente
+          </div>
+        ) : (
+          <button className="btn-add-user" onClick={handleModalOpen}>+ Agregar Usuario</button>
+        )}
       </div>
 
       <table className="users-table">

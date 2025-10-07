@@ -62,7 +62,7 @@ const CustomUserModal = ({
   return (
     <div className="custom-user-modal" onClick={handleOverlayClick}>
       <div className="custom-modal-content">
-        <h2>{isEditingInactive ? 'Activar Usuario' : 'Editar Usuario'}</h2>
+        <h2>{isEditingInactive ? 'Activar Usuario' : 'Manejo de Usuario'}</h2>
 
         {[
           { label: 'Nombres', name: 'nombres', type: 'text' },
@@ -95,7 +95,7 @@ const CustomUserModal = ({
           <input
             type="text"
             name="estado"
-            value={userData.estado === 1 ? 'activo' : 'inactivo'}
+            value={userData.estado === 1 ? 'activo' : 'activo'}
             disabled
           />
         </div>
@@ -115,7 +115,10 @@ const CustomUserModal = ({
           {isEditingInactive ? (
             <button className="btn-activate" onClick={onActivate}>Activar Usuario</button>
           ) : (
-            <button className="btn-save" onClick={onSave}>Guardar</button>
+            <button className="btn-save" onClick={async () => {
+              await onSave();
+              onClose();
+            }}>Guardar</button>
           )}
         </div>
       </div>

@@ -10,6 +10,7 @@ import Select from 'react-select';
 import CampanaModal from '../components/CampanaModal';
 import ConfirmModal from '../components/ConfirmModal';
 import { useConfirmModal } from '../hooks/useConfirmModal';
+import { collectDonationErrors, formatErrorsForAlert } from '../utils/validationHelpers';
 
 
 Modal.setAppElement('#root');
@@ -169,21 +170,61 @@ const handleSubmit = async () => {
     // Imprimir el body que se envía al backend
     console.log('Payload enviado a /donaciones:', basePayload);
 
+    // Validaciones previas unificadas
+    const errors = collectDonationErrors({ basePayload, formData, tipoDonacion, dineroData, especieData });
+    if (errors.length > 0) {
+      await showAlert({
+        title: 'Campos inválidos o incompletos',
+        message: formatErrorsForAlert(errors),
+        type: 'alert',
+        confirmText: 'Entendido'
+      });
+      return;
+    }
+
     const res = await axios.post('/donaciones', basePayload);
     const donacionId = res.data.id_donacion || res.data.id || res.data;
 
     // 2. Enviar la donación específica
+    const tipoNormalized = (tipoDonacion || formData.tipo_donacion || '').toLowerCase();
+
     const endpoint =
-      tipoDonacion === 'dinero'
+      tipoNormalized === 'dinero'
         ? `/donaciones-en-dinero/${donacionId}`
         : `/donaciones-en-especie/${donacionId}`;
 
     const specificPayload =
-      tipoDonacion === 'dinero' ? dineroData : especieData;
+      tipoNormalized === 'dinero'
+        ? { ...dineroData, monto: parseFloat(String(dineroData.monto).replace(',', '.')) }
+        : especieData;
     console.log('Payload enviado a', endpoint, ':', specificPayload);
     
     await axios.put(endpoint, specificPayload);
     setDonationNotice({ success: 'Donación registrada con éxito', error: '' });
+    await showAlert({ title: 'Éxito', message: 'La donación se agregó exitosamente', type: 'success', confirmText: 'Aceptar' });
+    // Reiniciar campos tras éxito
+    setTipoDonacion('');
+    setFormData({
+      id_donante: '',
+      fecha_donacion: new Date().toISOString().split('T')[0],
+      id_campana: '',
+      tipo_donacion: '',
+    });
+    setDineroData({
+      monto: '',
+      divisa: 'Bs',
+      nombre_cuenta: '',
+      numero_cuenta: '',
+      comprobante_url: '',
+      estado_validacion: 'pendiente',
+    });
+    setEspecieData({
+      id_articulo: '',
+      id_espacio: '',
+      cantidad: '',
+      estado_articulo: 'Nuevo',
+      destino_donacion: '',
+    });
   } catch (error) {
     console.error(error.response?.data || error.message);
     console.error('Error al guardar la donación:', error);
@@ -233,7 +274,7 @@ const [campañas, setCampañas] = useState([]);
         <div className="form-grid">
           <div className="form-group">
             <label>Tipo de Donación</label>
-            <select name="tipo_donacion" onChange={handleBaseChange}>
+            <select name="tipo_donacion" onChange={handleBaseChange} value={formData.tipo_donacion}>
               <option value="">Selecciona el tipo</option>
               <option value="Dinero">Dinero</option>
               <option value="especie">Especie</option>

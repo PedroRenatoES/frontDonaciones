@@ -478,11 +478,11 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Sección de Actividad */}
+      {/* Sección de Actividad 
       <div className="dashboard-section">
         <h2 className="section-title">Actividad Reciente</h2>
 
-        {/* Filtro de Actividad */}
+        {/* Filtro de Actividad 
 
         <div className="table-section">
           <div className="activity-filter">
@@ -551,7 +551,8 @@ const Dashboard = () => {
             </tbody>
           </table>
         </div>
-      </div>
+      </div> 
+      */}
 
       {/* Modal de detalles */}
       {modalOpen && donacionSeleccionada && (

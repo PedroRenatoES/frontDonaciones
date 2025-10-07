@@ -206,16 +206,7 @@
     background: rgba(248, 250, 252, 0.3);
 }
 
-.users-table tr:hover {
-    background: rgba(59, 130, 246, 0.05);
-    cursor: pointer;
-    transform: scale(1.001);
-}
-
-.users-table tr:hover td {
-    color: #1e293b;
-    font-weight: 600;
-}
+/* Efecto hover removido de las filas de la tabla */
 
 /* Botones de acción */
 .btn-edit,

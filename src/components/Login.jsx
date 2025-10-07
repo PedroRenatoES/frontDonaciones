@@ -16,8 +16,7 @@ function Login({ onLogin }) {
   const [almacenSeleccionado, setAlmacenSeleccionado] = useState('');
   const [animando, setAnimando] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
-  const [loginAttempts, setLoginAttempts] = useState(0);
-  const [isBlocked, setIsBlocked] = useState(false);
+  // Eliminado conteo de intentos y bloqueo de cuenta
   
   const { logActivity } = useSecurity();
   const { modalState, showAlert } = useConfirmModal();
@@ -37,12 +36,14 @@ function Login({ onLogin }) {
   }, []);
 
   const handleLogin = async () => {
-    // Verificar si está bloqueado
-    if (isBlocked) {
-      await showAlert({
-        title: "Cuenta Bloqueada",
-        message: "Demasiados intentos fallidos. Intenta nuevamente en 15 minutos.",
-        type: "error"
+    // Validar que la contraseña tenga al menos 12 caracteres
+    if (!contrasena || contrasena.length < 12) {
+      setError('La contraseña debe tener al menos 12 caracteres');
+      await showAlert({ 
+        title: 'Contraseña inválida', 
+        message: 'La contraseña debe tener al menos 12 caracteres', 
+        type: 'alert', 
+        confirmText: 'Entendido' 
       });
       return;
     }
@@ -97,9 +98,6 @@ function Login({ onLogin }) {
           localStorage.setItem('almacen', almacenSeleccionado);
         }
 
-        // Resetear intentos fallidos
-        setLoginAttempts(0);
-        setIsBlocked(false);
         setValidationErrors({});
         setError('');
 
@@ -109,36 +107,13 @@ function Login({ onLogin }) {
         }, 2500);
       }
     } catch (error) {
-      // Incrementar intentos fallidos
-      const newAttempts = loginAttempts + 1;
-      setLoginAttempts(newAttempts);
-      
-      // Bloquear después de 5 intentos
-      if (newAttempts >= 5) {
-        setIsBlocked(true);
-        logActivity('LOGIN_BLOCKED', { 
-          ci: sanitizedData.ci, 
-          attempts: newAttempts 
-        });
-        
-        // Desbloquear después de 15 minutos
-        setTimeout(() => {
-          setIsBlocked(false);
-          setLoginAttempts(0);
-        }, 15 * 60 * 1000);
-      }
-      
       logActivity('LOGIN_FAILED', { 
-        ci: sanitizedData.ci, 
-        attempts: newAttempts,
+        ci: loginData.ci, 
         error: error.response?.data?.error || 'Error desconocido'
       });
-      
-      if (error.response && error.response.data) {
-        setError(error.response.data.error);
-      } else {
-        setError('Hubo un problema al iniciar sesión');
-      }
+      const msg = error.response?.data?.error || 'Hubo un problema al iniciar sesión';
+      setError(msg);
+      await showAlert({ title: 'Error de inicio de sesión', message: msg, type: 'error', confirmText: 'Entendido' });
     }
   };
 
@@ -204,16 +179,11 @@ function Login({ onLogin }) {
           <button 
             className="login-button" 
             onClick={handleLogin}
-            disabled={isBlocked}
           >
-            {isBlocked ? 'Cuenta Bloqueada' : 'Iniciar Sesión'}
+            Iniciar Sesión
           </button>
           
-          {loginAttempts > 0 && !isBlocked && (
-            <div className="warning-message">
-              Intentos fallidos: {loginAttempts}/5
-            </div>
-          )}
+          {/* Indicador de intentos fallidos removido a solicitud */}
         </div>
       </div>
 
