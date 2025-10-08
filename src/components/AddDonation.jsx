@@ -26,6 +26,10 @@ function AddDonation() {
   const [numerosCuenta, setNumerosCuenta] = useState([]);
   const { modalState, showAlert } = useConfirmModal();
   const [loading, setLoading] = useState(false);
+  const [showDonorDropdown, setShowDonorDropdown] = useState(false);
+  const [donorSearchTerm, setDonorSearchTerm] = useState('');
+  const [showCampaignDropdown, setShowCampaignDropdown] = useState(false);
+  const [campaignSearchTerm, setCampaignSearchTerm] = useState('');
   const [dineroData, setDineroData] = useState({
   monto: '',
   divisa: 'Bs',
@@ -275,91 +279,143 @@ const [campañas, setCampañas] = useState([]);
         <div className="form-grid">
           <div className="form-group">
             <label>Tipo de Donación</label>
-            <select name="tipo_donacion" onChange={handleBaseChange} value={formData.tipo_donacion}>
-              <option value="">Selecciona el tipo</option>
-              <option value="Dinero">Dinero</option>
-              <option value="especie">Especie</option>
-            </select>
+            <div className="form-input-container">
+              <select name="tipo_donacion" onChange={handleBaseChange} value={formData.tipo_donacion}>
+                <option value="">Selecciona el tipo</option>
+                <option value="Dinero">Dinero</option>
+                <option value="especie">Especie</option>
+              </select>
+            </div>
           </div>
 
           <div className="form-group">
             <label>Donante</label>
-            <Select
-              options={donantes.map(d => ({
-                value: d.id_donante,
-                label: `${d.nombres} ${d.apellido_paterno || ''} ${d.apellido_materno || ''}`
-              }))}
-              onChange={(selected) => {
-                setFormData(prev => ({
-                  ...prev,
-                  id_donante: selected?.value || '',
-                  nombre_donante: selected?.label || ''
-                }));
-              }}
-              value={
-                formData.id_donante
-                  ? {
-                      value: formData.id_donante,
-                      label: formData.nombre_donante
+            <div className="form-input-container" style={{marginTop: '-7px'} }>
+              <div className="custom-dropdown-container">
+                <input style={{height: '43px'} }
+                  type="text"
+                  className="custom-dropdown-input"
+                  placeholder="Buscar donante por nombre"
+                  value={formData.nombre_donante || ''}
+                  onChange={(e) => {
+                    const searchTerm = e.target.value;
+                    setFormData(prev => ({
+                      ...prev,
+                      nombre_donante: searchTerm,
+                      id_donante: searchTerm ? formData.id_donante : ''
+                    }));
+                    setDonorSearchTerm(searchTerm);
+                  }}
+                  onFocus={() => setShowDonorDropdown(true)}
+                  onBlur={() => setTimeout(() => setShowDonorDropdown(false), 200)}
+                />
+                {showDonorDropdown && (
+                  <div className="custom-dropdown-list">
+                    {donantes
+                      .filter(d => 
+                        `${d.nombres} ${d.apellido_paterno || ''} ${d.apellido_materno || ''}`
+                          .toLowerCase()
+                          .includes(donorSearchTerm.toLowerCase())
+                      )
+                      .map(donante => (
+                        <div
+                          key={donante.id_donante}
+                          className="custom-dropdown-item"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              id_donante: donante.id_donante,
+                              nombre_donante: `${donante.nombres} ${donante.apellido_paterno || ''} ${donante.apellido_materno || ''}`
+                            }));
+                            setShowDonorDropdown(false);
+                          }}
+                        >
+                          {donante.nombres} {donante.apellido_paterno || ''} {donante.apellido_materno || ''}
+                        </div>
+                      ))
                     }
-                  : null
-              }
-              placeholder="Buscar donante por nombre"
-              isClearable
-            />
-            <button
-              type="button"
-              className="btn-add-donor"
-              onClick={() => {
-                setDonorFormData({
-                  nombres: '',
-                  apellido_paterno: '',
-                  apellido_materno: '',
-                  correo: '',
-                  telefono: '',
-                  usuario: '',
-                  contraseña_hash: '',
-                });
-                setEditMode(false);
-                setDonorModalOpen(true);
-              }}
-            >
-              + Agregar Donante
-            </button>
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                className="btn-add-donor"
+                onClick={() => {
+                  setDonorFormData({
+                    nombres: '',
+                    apellido_paterno: '',
+                    apellido_materno: '',
+                    correo: '',
+                    telefono: '',
+                    usuario: '',
+                    contraseña_hash: '',
+                  });
+                  setEditMode(false);
+                  setDonorModalOpen(true);
+                }}
+              >
+                + Agregar Donante
+              </button>
+            </div>
           </div>
 
           <div className="form-group">
             <label>Campaña</label>
-            <Select
-              options={campañas.map(c => ({
-                value: c.id_campana,
-                label: c.nombre_campana
-              }))}
-              onChange={(selected) => {
-                setFormData(prev => ({
-                  ...prev,
-                  id_campana: selected?.value || '',
-                  nombre_campana: selected?.label || ''
-                }));
-              }}
-              value={
-                formData.id_campana
-                  ? {
-                      value: formData.id_campana,
-                      label: formData.nombre_campana
+            <div className="form-input-container" style={{marginTop: '-7px'} }>
+              <div className="custom-dropdown-container">
+                <input style={{height: '43px'} }
+                  type="text"
+                  className="custom-dropdown-input"
+                  placeholder="Buscar campaña por nombre"
+                  value={formData.nombre_campana || ''}
+                  onChange={(e) => {
+                    const searchTerm = e.target.value;
+                    setFormData(prev => ({
+                      ...prev,
+                      nombre_campana: searchTerm,
+                      id_campana: searchTerm ? formData.id_campana : ''
+                    }));
+                    setCampaignSearchTerm(searchTerm);
+                  }}
+                  onFocus={() => setShowCampaignDropdown(true)}
+                  onBlur={() => setTimeout(() => setShowCampaignDropdown(false), 200)}
+                />
+                {showCampaignDropdown && (
+                  <div className="custom-dropdown-list">
+                    {campañas
+                      .filter(c => 
+                        c.nombre_campana
+                          .toLowerCase()
+                          .includes(campaignSearchTerm.toLowerCase())
+                      )
+                      .map(campana => (
+                        <div
+                          key={campana.id_campana}
+                          className="custom-dropdown-item"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              id_campana: campana.id_campana,
+                              nombre_campana: campana.nombre_campana
+                            }));
+                            setShowCampaignDropdown(false);
+                          }}
+                        >
+                          {campana.nombre_campana}
+                        </div>
+                      ))
                     }
-                  : null
-              }
-              placeholder="Buscar campaña por nombre"
-              isClearable
-            />
-            <button
-              type="button"
-              className="btn-add-campaign"
-              onClick={() => setCampanaModalOpen(true)}
-            >
-              + Crear Campaña
-            </button>
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                className="btn-add-campaign"
+                onClick={() => setCampanaModalOpen(true)}
+              >
+                + Crear Campaña
+              </button>
+            </div>
           </div>
 
           <div className="form-group">
