@@ -29,8 +29,19 @@ const ListaCajasPorPaquete = ({ idPaquete, refrescarTrigger, setCajas }) => {
         {cajasLocal.map((caja) => (
           <li key={caja.id_caja} className="list-group-item">
             <strong>Código:</strong> {caja.codigo_caja} <br />
-            <strong>Descripción:</strong> {caja.descripcion} <br />
-            <strong>Cantidad asignada:</strong> {caja.cantidad_asignada}
+            <strong>Artículos:</strong> {
+              typeof caja.descripcion === 'string' && caja.descripcion.length > 0
+                ? caja.descripcion.split(',').map((par, idx) => {
+                    const [nombre, cantidad] = par.split(':');
+                    return (
+                      <span key={nombre + idx}>
+                        {nombre}: {cantidad}{idx < caja.descripcion.split(',').length - 1 ? ', ' : ''}
+                      </span>
+                    );
+                  })
+                : 'Sin detalle'
+            }<br />
+            <strong>Cantidad total:</strong> {caja.cantidad_asignada}
           </li>
         ))}
       </ul>

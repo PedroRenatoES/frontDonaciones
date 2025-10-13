@@ -78,12 +78,26 @@ const PackageItem = ({ paquete, donacionesEspecie, catalogoArticulos, onCompleta
             </>
           )}
 
-          <p><strong>Donaciones:</strong></p>
+          <p><strong>Artículos asignados al paquete:</strong></p>
           <ul>
             {detallesPaquete?.items?.length > 0 ? (
-              detallesPaquete.items.map((item, idx) => (
-                <li key={idx}>
-                  Artículo: {item.nombre_articulo} — Cantidad: {item.cantidad} {item.unidad}
+              // Agrupar y sumar por artículo usando cantidad_asignada
+              Object.values(
+                detallesPaquete.items.reduce((acc, item) => {
+                  const key = item.nombre_articulo + '|' + (item.unidad || '');
+                  if (!acc[key]) {
+                    acc[key] = {
+                      nombre_articulo: item.nombre_articulo,
+                      cantidad: 0,
+                      unidad: item.unidad || ''
+                    };
+                  }
+                  acc[key].cantidad += Number(item.cantidad_asignada);
+                  return acc;
+                }, {})
+              ).map((art, idx) => (
+                <li key={art.nombre_articulo + art.unidad}>
+                  Artículo: {art.nombre_articulo} — Cantidad: {art.cantidad} {art.unidad}
                 </li>
               ))
             ) : (
@@ -101,7 +115,23 @@ const PackageItem = ({ paquete, donacionesEspecie, catalogoArticulos, onCompleta
           ) : (
             <DetallePaquete
               paquete={paquete}
-              productos={detallesPaquete.items}
+              productos={
+                // Agrupar productos por nombre_articulo y unidad, sumando cantidad_asignada
+                Object.values(
+                  detallesPaquete.items.reduce((acc, item) => {
+                    const key = item.nombre_articulo + '|' + (item.unidad || '');
+                    if (!acc[key]) {
+                      acc[key] = {
+                        nombre_articulo: item.nombre_articulo,
+                        cantidad: 0,
+                        unidad: item.unidad || ''
+                      };
+                    }
+                    acc[key].cantidad += Number(item.cantidad_asignada);
+                    return acc;
+                  }, {})
+                )
+              }
               volver={handleCerrarFormulario}
             />
           )}

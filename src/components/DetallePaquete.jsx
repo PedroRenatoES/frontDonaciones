@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import axios from '../axios';
+import axiosPublic from '../axiosPublic';
 import ListaCajasPorPaquete from './ListaCajasPorPaquete';
 
 const DetallePaquete = ({ paquete, productos, volver }) => {
@@ -10,16 +11,23 @@ const DetallePaquete = ({ paquete, productos, volver }) => {
   const [enviando, setEnviando] = useState(false);
 
   // Calculamos la cantidad asignada total por producto a partir de las cajas
+  // Parsear la descripción de cada caja para restar correctamente por artículo
   const cantidadesAsignadas = useMemo(() => {
     const asignadas = {};
     productos.forEach(prod => {
       asignadas[prod.nombre_articulo] = 0;
     });
     cajas.forEach(caja => {
-      // Buscamos el producto en la descripcion de la caja
-      const nombreProducto = productos.find(p => caja.descripcion.includes(p.nombre_articulo))?.nombre_articulo;
-      if (nombreProducto) {
-        asignadas[nombreProducto] += caja.cantidad_asignada;
+      if (typeof caja.descripcion === 'string') {
+        // Ejemplo: "Agua:2,Arroz:2"
+        caja.descripcion.split(',').forEach(par => {
+          const [nombre, cantidad] = par.split(':');
+          if (nombre && !isNaN(Number(cantidad))) {
+            if (asignadas[nombre] !== undefined) {
+              asignadas[nombre] += Number(cantidad);
+            }
+          }
+        });
       }
     });
     return asignadas;
@@ -29,6 +37,7 @@ const DetallePaquete = ({ paquete, productos, volver }) => {
   const cantidadDisponibleReal = (nombre_articulo) => {
     const prod = productos.find(p => p.nombre_articulo === nombre_articulo);
     if (!prod) return 0;
+    // prod.cantidad ya es la suma asignada para ese artículo
     return prod.cantidad - (cantidadesAsignadas[nombre_articulo] || 0);
   };
 
@@ -82,9 +91,11 @@ const DetallePaquete = ({ paquete, productos, volver }) => {
       }
     }
 
+
+    // Serializar artículos y cantidades en la descripción: "Agua:2,Arroz:2"
     const descripcion = seleccionados
-      .map(p => `${p.nombre_articulo} (${p.unidad})`)
-      .join(', ');
+      .map(p => `${p.nombre_articulo}:${p.cantidad_asignada}`)
+      .join(',');
 
     const cantidadTotal = seleccionados.reduce((acc, cur) => acc + cur.cantidad_asignada, 0);
     const numeroCaja = Math.floor(Math.random() * 10000);
@@ -126,6 +137,38 @@ const DetallePaquete = ({ paquete, productos, volver }) => {
       await axios.put('/paquetes/marcar-enviado', {
         id_paquete: paquete.id_paquete
       });
+
+      // --- SEGUNDO POST EXTERNO: enviar SIEMPRE al marcar como enviado (verificación comentada) ---
+      // Lógica de verificación de todosEnviados comentada temporalmente
+      // Obtener ciUsuario de la descripción del paquete actual
+      let ciUsuario = '';
+      const match = paquete.descripcion.match(/CI:([^|]+)\|/);
+      if (match) {
+        ciUsuario = match[1];
+      }
+      // Obtener idDonacion externo consultando el pedido de ayuda
+      let idDonacion = null;
+      try {
+  const resPedido = await axios.get(`/pedidos-de-ayuda/${paquete.id_pedido}`);
+  idDonacion = resPedido.data.id_donacion;
+      } catch (err) {
+        console.error('No se pudo obtener el pedido de ayuda para el segundo POST externo:', err);
+      }
+      if (idDonacion && ciUsuario) {
+        try {
+          const url = `http://localhost:3001/donaciones/armado/${idDonacion}`;
+          console.log('[POST EXTERNO 2] Enviando a:', url);
+          console.log('[POST EXTERNO 2] Payload:', { ciUsuario });
+          alert(`[DEBUG] Enviando segundo POST externo a: ${url} con ciUsuario: ${ciUsuario}`);
+          await axiosPublic.post(url, { ciUsuario });
+        } catch (err) {
+          console.error('Error al enviar POST externo (armado completo):', err);
+          alert('[ERROR] No se pudo enviar el segundo POST externo. Revisa la consola.');
+        }
+      } else {
+        alert(`[DEBUG] No se envió segundo POST externo. ciUsuario: ${ciUsuario}, idDonacion: ${idDonacion}`);
+      }
+
       alert('Paquete marcado como enviado');
       volver();
     } catch (error) {

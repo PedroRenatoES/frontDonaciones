@@ -7,361 +7,269 @@ function PaqueteFormModal({
   show,
   onClose,
   onPaqueteCreado,
-  pedidoPreseleccionado,
-  descripcionPedido,
-  idPedidoLocal, 
-  fuenteExterna
+  articulosPedido = [],
+  codigoPedido = '',
+  idPedidoLocal = null,
+  descripcionPedido = '',
+  ciUsuario = '',
+  idDonacion = null // <-- nuevo prop
 }) {
-  const [nombrePaquete, setNombrePaquete] = useState('');
   const [descripcion, setDescripcion] = useState('');
-  const [pedidoSeleccionado, setPedidoSeleccionado] = useState(pedidoPreseleccionado || '');
   const [donacionesEspecie, setDonacionesEspecie] = useState([]);
-  const [seleccionadas, setSeleccionadas] = useState([]);
-  const [busquedaArticulo, setBusquedaArticulo] = useState('');
-  const [unidadFiltro, setUnidadFiltro] = useState('');
+  const [almacenes, setAlmacenes] = useState([]);
   const [catalogo, setCatalogo] = useState([]);
-  const [unidades, setUnidades] = useState([]);
-  const [pedidos, setPedidos] = useState([]);
+  // Estructura agrupada: { nombreArticulo: { id_almacen: { nombre_almacen, stock, cantidad_asignada, donaciones: [ { id_donacion_especie, cantidad_restante } ] } } }
+  const [asignacion, setAsignacion] = useState({});
 
   useEffect(() => {
     if (show) {
-      // Carga las donaciones solo cuando se abre el modal
-      const fetchDonaciones = async () => {
+      const fetchData = async () => {
         try {
-          const [donacionesRes, almacenesRes] = await Promise.all([
+          const [donacionesRes, almacenesRes, catalogoRes] = await Promise.all([
             axios.get('/donaciones-en-especie'),
-            axios.get('/almacenes')
+            axios.get('/almacenes'),
+            axios.get('/catalogo')
           ]);
-      
-          const nombreAlmacenLS = localStorage.getItem('almacen');
-          const almacenMatch = almacenesRes.data.find(
-            (alm) => alm.nombre_almacen === nombreAlmacenLS
-          );
-      
-          if (!almacenMatch) {
-            console.warn('No se encontró el almacén del usuario.');
-            setDonacionesEspecie([]);
-            return;
+          setDonacionesEspecie(donacionesRes.data);
+          setAlmacenes(almacenesRes.data);
+          setCatalogo(catalogoRes.data);
+
+          // Enriquecer donaciones con nombre_articulo usando el catálogo
+          const catalogoMap = {};
+          for (const item of catalogoRes.data) {
+            catalogoMap[item.id_articulo] = item.nombre_articulo;
           }
-      
-          const idAlmacen = almacenMatch.id_almacen;
-          const donacionesFiltradas = donacionesRes.data.filter(
-            (d) => d.id_almacen === idAlmacen
-          );
-      
-          setDonacionesEspecie(donacionesFiltradas);
+          const donacionesConNombre = donacionesRes.data.map(d => ({
+            ...d,
+            nombre_articulo: catalogoMap[d.id_articulo] || ''
+          }));
+          setDonacionesEspecie(donacionesConNombre);
+
+          // Agrupar donaciones por almacén para cada artículo
+          const agrupado = {};
+          for (const art of articulosPedido) {
+            const donacionesArt = donacionesConNombre.filter(d => d.nombre_articulo === art.nombre && d.cantidad_restante > 0);
+            const porAlmacen = {};
+            for (const d of donacionesArt) {
+              if (!porAlmacen[d.id_almacen]) {
+                porAlmacen[d.id_almacen] = {
+                  nombre_almacen: almacenesRes.data.find(a => a.id_almacen === d.id_almacen)?.nombre_almacen || d.id_almacen,
+                  stock: 0,
+                  cantidad_asignada: 0,
+                  donaciones: []
+                };
+              }
+              porAlmacen[d.id_almacen].stock += d.cantidad_restante;
+              porAlmacen[d.id_almacen].donaciones.push({
+                id_donacion_especie: d.id_donacion_especie,
+                cantidad_restante: d.cantidad_restante
+              });
+            }
+            agrupado[art.nombre] = porAlmacen;
+          }
+          setAsignacion(agrupado);
         } catch (error) {
-          console.error('Error al cargar donaciones:', error);
-          alert('No se pudieron cargar las donaciones.');
+          alert('No se pudieron cargar donaciones, almacenes o catálogo.');
         }
       };
-      
-      fetchDonaciones();
+      fetchData();
     } else {
-      // Resetear formulario cuando se cierra
-      setNombrePaquete('');
       setDescripcion('');
-      setPedidoSeleccionado(pedidoPreseleccionado || '');
-      setSeleccionadas([]);
-      setBusquedaArticulo('');
-      setUnidadFiltro('');
+      setAsignacion({});
     }
-  }, [show, pedidoPreseleccionado]);
-
-  const fetchUnidades = async () => {
-    try {
-      const res = await axios.get('/unidades');
-      setUnidades(res.data);
-    } catch (error) {
-      console.error('Error al cargar las unidades:', error);
-    }
-  };
-
-  useEffect(() => {
-    fetchUnidades();
-  }, []);
-
-  const fetchCatalogo = async () => {
-    try {
-      const res = await axios.get('/catalogo');
-      setCatalogo(res.data);
-    } catch (error) {
-      console.error('Error al cargar el catálogo:', error);
-    }
-  };
-
-  useEffect(() => {
-    fetchCatalogo();
-  }, []);
-
-  const getArticuloNombre = (id) => {
-    const articulo = catalogo.find(item => item.id_articulo === id);
-    return articulo ? articulo.nombre_articulo : 'Desconocido';
-  };
-
-  const toggleSeleccion = (don) => {
-    const existe = seleccionadas.find(d => d.id_donacion_especie === don.id_donacion_especie);
-    if (existe) {
-      setSeleccionadas(seleccionadas.filter(d => d.id_donacion_especie !== don.id_donacion_especie));
-    } else {
-      setSeleccionadas([...seleccionadas, {
-        id_donacion_especie: don.id_donacion_especie,
-        cantidad_asignada: don.cantidad_restante
-      }]);
-    }
-  };
-
-  const handleCantidadChange = (id, cantidad) => {
-    setSeleccionadas(prev =>
-      prev.map(d =>
-        d.id_donacion_especie === id ? { ...d, cantidad_asignada: cantidad } : d
-      )
-    );
-  };
-
-  const donacionesFiltradas = donacionesEspecie.filter(don => {
-    const articuloNombre = getArticuloNombre(don.id_articulo).toLowerCase();
-    const coincideUnidad = unidadFiltro ? don.id_unidad === Number(unidadFiltro) : true;
-    const coincideBusqueda = articuloNombre.includes(busquedaArticulo.toLowerCase());
-    return coincideUnidad && coincideBusqueda && don.cantidad_restante > 0;
-  });
-
-  // 🔥 FUNCIÓN PARA ADMIN - DISTRIBUCIÓN MÚLTIPLE
-  const crearPaquetesDistribucionAdmin = async (solicitud, articulosPorAlmacen) => {
-    const resultados = [];
-    
-    for (const [almacen, articulos] of Object.entries(articulosPorAlmacen)) {
-      if (articulos.length > 0) {
-        // ✅ NOMBRE normal (compatible)
-        const nombrePaquete = `Paquete ${solicitud.codigo} - ${almacen}`;
-        
-        // ✅ DESCRIPCIÓN con metadatos
-        const descripcionConMeta = `SOL#${solicitud.codigo}|ALMACEN:${almacen}|${solicitud.descripcion}`;
-        
-        const payload = {
-          nombre_paquete: nombrePaquete,
-          descripcion: descripcionConMeta,
-          id_pedido: solicitud.id,
-          donaciones: articulos
-        };
-        
-        console.log(`📦 Creando paquete: ${nombrePaquete}`);
-        const response = await axios.post('/paquetes', payload);
-        resultados.push(response.data);
-      }
-    }
-    
-    return resultados;
-  };
-
-  const crearPaquete = async () => {
-    const nombreNormalizado = nombrePaquete.trim().toLowerCase();
-
-    if (!nombreNormalizado || seleccionadas.length === 0) {
-      alert('Debe ingresar un nombre y al menos una donación.');
-      return;
-    }
-
-    // ✅ MANTENER nombre_paquete igual para compatibilidad
-    const nombreFinal = nombrePaquete;
-
-    // ✅ AGREGAR METADATOS en descripción
-    let descripcionFinal = descripcion;
-    
-    if (pedidoPreseleccionado) {
-      const miAlmacen = localStorage.getItem('almacen');
-      descripcionFinal = `SOL#${pedidoPreseleccionado}|ALMACEN:${miAlmacen}|${descripcion}`;
-    }
-
-    let idPedidoReal = idPedidoLocal || pedidoSeleccionado;
-    if (typeof idPedidoReal === 'string') {
-      const match = idPedidoReal.match(/(?:INTERNAL|EXT)-(\d+)/);
-      if (match) {
-        idPedidoReal = parseInt(match[1], 10);
-      }
-    }
-
-    const payload = {
-      nombre_paquete: nombreFinal, // ✅ COMPATIBLE con endpoint externo
-      descripcion: descripcionFinal, // ✅ CON METADATOS para filtrado interno
-      id_pedido: idPedidoReal,
-      donaciones: seleccionadas
-    };
-
-    console.log('▶ Payload enviado:', payload);
-    
-    try {
-      await axios.post('/paquetes', payload);
-      console.log('✅ Paquete creado localmente con éxito');
-      
-      // Aquí iría el resto del código para envío a plataforma externa
-      // que ya tenías implementado
-      
-      alert('✅ Paquete creado exitosamente');
-      onPaqueteCreado();
-      onClose();
-      
-    } catch (error) {
-      console.error('❌ Error creando paquete en base de datos local:', error.response?.data || error.message);
-      alert('❌ Error al crear el paquete localmente');
-      return;
-    }
-  };
+  }, [show]);
 
   if (!show) return null;
 
+  // Handler para cambiar la cantidad asignada por almacén
+  const handleAsignacionChange = (nombreArticulo, idAlmacen, value) => {
+    setAsignacion(prev => {
+      const nuevo = { ...prev };
+      const porAlmacen = { ...nuevo[nombreArticulo] };
+      porAlmacen[idAlmacen] = {
+        ...porAlmacen[idAlmacen],
+        cantidad_asignada: Math.max(0, Math.min(Number(value), porAlmacen[idAlmacen].stock))
+      };
+      nuevo[nombreArticulo] = porAlmacen;
+      return nuevo;
+    });
+  };
+
+  // Calcular suma asignada por artículo
+  const sumaAsignada = (nombreArticulo) => {
+    const porAlmacen = asignacion[nombreArticulo] || {};
+    return Object.values(porAlmacen).reduce((acc, a) => acc + (Number(a.cantidad_asignada) || 0), 0);
+  };
+
+  // Validación y creación de paquetes agrupados por almacén
+  const handleCrearPaquetes = async () => {
+    // Validar que la suma asignada para cada artículo sea igual a lo solicitado
+    for (const art of articulosPedido) {
+      if (sumaAsignada(art.nombre) !== art.cantidad) {
+        alert(`Debes asignar exactamente ${art.cantidad} unidades de ${art.nombre}`);
+        return;
+      }
+    }
+
+    // Repartir cantidades asignadas por almacén entre donaciones individuales
+    // y agrupar por almacén para crear los paquetes
+    const paquetesPorAlmacen = {};
+    for (const art of articulosPedido) {
+      const porAlmacen = asignacion[art.nombre] || {};
+      for (const [idAlmacen, info] of Object.entries(porAlmacen)) {
+        if (!info.cantidad_asignada || info.cantidad_asignada < 1) continue;
+        // Repartir la cantidad entre las donaciones individuales de ese almacén
+        let cantidadRestante = info.cantidad_asignada;
+        for (const don of info.donaciones) {
+          if (cantidadRestante <= 0) break;
+          // Buscar la donación completa en donacionesEspecie para ver el estado
+          const donacionCompleta = donacionesEspecie.find(x => x.id_donacion_especie === don.id_donacion_especie);
+          const esSellado = donacionCompleta && typeof donacionCompleta.estado_articulo === 'string' && donacionCompleta.estado_articulo.toLowerCase() === 'sellado';
+          if (esSellado) {
+            // Solo se puede donar si hay suficiente para tomar todo el paquete
+            if (cantidadRestante >= don.cantidad_restante) {
+              if (!paquetesPorAlmacen[idAlmacen]) paquetesPorAlmacen[idAlmacen] = [];
+              paquetesPorAlmacen[idAlmacen].push({
+                id_donacion_especie: don.id_donacion_especie,
+                cantidad_asignada: don.cantidad_restante
+              });
+              cantidadRestante -= don.cantidad_restante;
+            }
+            // Si no hay suficiente para donar todo el sellado, se salta
+            continue;
+          } else {
+            // Donaciones normales: se puede tomar parcial
+            const cantidadAsignar = Math.min(don.cantidad_restante, cantidadRestante);
+            if (cantidadAsignar > 0) {
+              if (!paquetesPorAlmacen[idAlmacen]) paquetesPorAlmacen[idAlmacen] = [];
+              paquetesPorAlmacen[idAlmacen].push({
+                id_donacion_especie: don.id_donacion_especie,
+                cantidad_asignada: cantidadAsignar
+              });
+              cantidadRestante -= cantidadAsignar;
+            }
+          }
+        }
+      }
+    }
+
+    // Crear paquetes por almacén
+    try {
+      // Guardar los id_almacen involucrados para el segundo POST externo
+      const almacenesInvolucrados = [];
+      for (const [idAlmacen, donaciones] of Object.entries(paquetesPorAlmacen)) {
+        const almacenObj = almacenes.find(a => a.id_almacen == idAlmacen);
+        if (almacenObj) almacenesInvolucrados.push(almacenObj.nombre_almacen);
+        // Guardar el ciUsuario y el id_almacen en la descripción para el filtro robusto
+        const descripcionFinal = `CI:${ciUsuario || ''}|SOL#${codigoPedido}|IDALMACEN:${idAlmacen}|ALMACEN:${almacenObj?.nombre_almacen || idAlmacen}|${descripcion}`;
+        // Usar el idPedidoLocal (número real) si está disponible
+        let idPedidoNum = idPedidoLocal;
+        if (!idPedidoNum && typeof codigoPedido === 'string' && /^\d+$/.test(codigoPedido)) {
+          idPedidoNum = parseInt(codigoPedido, 10);
+        }
+        await axios.post('/paquetes', {
+          nombre_paquete: codigoPedido,
+          descripcion: descripcionFinal,
+          id_pedido: idPedidoNum,
+          donaciones
+        });
+      }
+
+      // POST externo tras aceptar el pedido de ayuda (primer POST)
+      if (ciUsuario && idDonacion) {
+        try {
+          const url = `http://localhost:3001/donaciones/armado/${idDonacion}`;
+          console.log('[POST EXTERNO] Enviando a:', url);
+          console.log('[POST EXTERNO] Payload:', { ciUsuario });
+          alert(`[DEBUG] Enviando POST externo a: ${url} con ciUsuario: ${ciUsuario}`);
+          await axiosPublic.post(url, {
+            ciUsuario: ciUsuario
+          });
+        } catch (err) {
+          console.error('Error al enviar POST externo (aceptar pedido):', err);
+          alert('[ERROR] No se pudo enviar el POST externo. Revisa la consola.');
+        }
+      } else {
+        alert(`[DEBUG] No se envió POST externo. ciUsuario: ${ciUsuario}, idDonacion: ${idDonacion}`);
+      }
+
+      alert('Paquetes creados correctamente');
+      onPaqueteCreado && onPaqueteCreado();
+      onClose && onClose();
+    } catch (err) {
+      alert('Error al crear paquetes');
+    }
+  };
+
   return (
     <div className="modal-backdrop-custom">
-      <div className="modal-dialog" style={{ maxWidth: '900px' }}>
+      <div className="modal-dialog" style={{ maxWidth: '1100px' }}>
         <div className="modal-content p-3">
           <div className="modal-header">
-            <h5 className="modal-title">Crear Paquete de Donaciones</h5>
+            <h5 className="modal-title">Asignar Donaciones a Almacenes</h5>
             <button type="button" className="btn-close" onClick={onClose}></button>
           </div>
-
           {descripcionPedido && (
             <div className="alert alert-info">
               <strong>Pedido seleccionado:</strong> {descripcionPedido}
             </div>
           )}
-
           <div className="modal-body">
             <div className="mb-3">
               <label className="form-label">Nombre del Paquete</label>
-              <input
-                type="text"
-                className="form-control"
-                value={nombrePaquete}
-                onChange={(e) => setNombrePaquete(e.target.value)}
-              />
+              <input type="text" className="form-control" value={codigoPedido} disabled />
+              <div className="form-text">El nombre del paquete es el código de la solicitud y no puede cambiarse.</div>
             </div>
-
             <div className="mb-3">
               <label className="form-label">Descripción</label>
               <textarea
                 className="form-control"
                 value={descripcion}
-                onChange={(e) => setDescripcion(e.target.value)}
+                onChange={e => setDescripcion(e.target.value)}
               />
             </div>
-
-            <h5>Seleccionar Donaciones en Especie</h5>
-
-            <div className="row mb-3">
-              <div className="col-md-6">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Buscar artículo"
-                  value={busquedaArticulo}
-                  onChange={(e) => setBusquedaArticulo(e.target.value)}
-                />
-              </div>
-              <div className="col-md-6">
-                <select
-                  className="form-select"
-                  value={unidadFiltro}
-                  onChange={(e) => setUnidadFiltro(e.target.value)}
-                >
-                  <option value="">Todas las unidades</option>
-                  {unidades.map(unidad => (
-                    <option key={unidad.id_unidad} value={unidad.id_unidad}>
-                      {unidad.simbolo} — {unidad.nombre_unidad}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-              <table className="table table-striped">
-                <thead>
-                  <tr>
-                    <th></th>
-                    <th>Artículo</th>
-                    <th>Cantidad Disponible</th>
-                    <th>Cantidad Asignada</th>
-                    <th>Unidad</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {donacionesFiltradas.map(don => {
-                    const seleccionada = seleccionadas.find(s => s.id_donacion_especie === don.id_donacion_especie);
-                    return (
-                      <tr key={don.id_donacion_especie}>
-                        <td>
-                          <input
-                            type="checkbox"
-                            checked={!!seleccionada}
-                            disabled={don.cantidad_restante <= 0}
-                            onChange={() => toggleSeleccion(don)}
-                          />
-                        </td>
-                        <td>{getArticuloNombre(don.id_articulo)}</td>
-                        <td>{don.cantidad_restante}</td>
-                        <td>
-                          {seleccionada ? (
+            <h5>Asignar artículos desde donaciones disponibles</h5>
+            {articulosPedido.map((art, idx) => {
+              const porAlmacen = asignacion[art.nombre] || {};
+              return (
+                <div key={art.nombre + idx} style={{ marginBottom: 32, border: '1px solid #eee', borderRadius: 8, padding: 12 }}>
+                  <div style={{ fontWeight: 'bold', fontSize: '1.1em', marginBottom: 8 }}>{art.nombre} <span style={{ color: '#888', fontWeight: 'normal' }}>(Requerido: {art.cantidad})</span></div>
+                  <table className="table table-bordered">
+                    <thead>
+                      <tr>
+                        <th>Almacén</th>
+                        <th>Stock disponible</th>
+                        <th>Cantidad a asignar</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(porAlmacen).map(([idAlmacen, info]) => (
+                        <tr key={idAlmacen}>
+                          <td>{info.nombre_almacen}</td>
+                          <td>{info.stock}</td>
+                          <td>
                             <input
                               type="number"
-                              min="1"
-                              max={don.cantidad_restante}
-                              value={seleccionada.cantidad_asignada}
-                              onChange={e => handleCantidadChange(don.id_donacion_especie, Number(e.target.value))}
+                              min={0}
+                              max={info.stock}
+                              value={info.cantidad_asignada}
+                              onChange={e => handleAsignacionChange(art.nombre, idAlmacen, e.target.value)}
                             />
-                          ) : (
-                            '-'
-                          )}
-                        </td>
-                        <td>
-                          {unidades.find(u => u.id_unidad === don.id_unidad)?.simbolo || '—'}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {/* 🔥 SECCIÓN ADMIN - DISTRIBUCIÓN */}
-            {localStorage.getItem('rol') === '1' && pedidoPreseleccionado && (
-              <div className="admin-distribucion mt-4 p-3 border rounded bg-light">
-                <h6>🔧 Modo Administración - Distribución Rápida</h6>
-                <p className="text-muted small">
-                  Crea múltiples paquetes para esta solicitud asignados a diferentes almacenes.
-                </p>
-                
-                <button 
-                  className="btn btn-outline-info btn-sm me-2"
-                  onClick={async () => {
-                    // Ejemplo de distribución - puedes hacerlo más complejo
-                    const distribucion = {
-                      'NORTE': seleccionadas.slice(0, Math.ceil(seleccionadas.length / 2)),
-                      'SUR': seleccionadas.slice(Math.ceil(seleccionadas.length / 2))
-                    };
-                    
-                    await crearPaquetesDistribucionAdmin(
-                      { 
-                        codigo: pedidoPreseleccionado, 
-                        descripcion: descripcionPedido,
-                        id: pedidoPreseleccionado 
-                      },
-                      distribucion
-                    );
-                    
-                    alert('✅ Paquetes distribuidos a almacenes');
-                    onPaqueteCreado();
-                    onClose();
-                  }}
-                >
-                  🎯 Distribuir a Almacenes
-                </button>
-              </div>
-            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div style={{ color: sumaAsignada(art.nombre) === art.cantidad ? 'green' : 'red', fontWeight: 'bold' }}>
+                    Total asignado: {sumaAsignada(art.nombre)} / {art.cantidad}
+                  </div>
+                </div>
+              );
+            })}
           </div>
-
           <div className="modal-footer">
             <button className="btn btn-secondary" onClick={onClose}>Cancelar</button>
-            <button className="btn btn-primary" onClick={crearPaquete}>Confirmar Paquete</button>
+            <button className="btn btn-primary" onClick={handleCrearPaquetes}>Confirmar Asignación</button>
           </div>
         </div>
       </div>

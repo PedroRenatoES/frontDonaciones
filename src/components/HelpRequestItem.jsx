@@ -3,13 +3,15 @@ import PaqueteFormModal from './SendDonations.jsx';
 import '../styles/HelpRequestItem.css';
 import axios from '../axios';
 
-const PedidoItem = ({ pedido }) => {
+const PedidoItem = ({ pedido, onPaquetesCreados }) => {
   const [expandido, setExpandido] = useState(false);
   const [idPedidoLocal, setIdPedidoLocal] = useState(null); // el id numérico real
   const [mostrarModal, setMostrarModal] = useState(false);
   const [pedidoCreado, setPedidoCreado] = useState(false);
   
 
+
+  // Extrae los artículos y el código del pedido externo
   const obtenerArticulos = (descripcion) => {
     if (!descripcion) return [];
     return descripcion.split(',').map(par => {
@@ -17,8 +19,8 @@ const PedidoItem = ({ pedido }) => {
       return { nombre: nombre.trim(), cantidad: Number(cantidad) || 0 };
     });
   };
-
   const articulos = obtenerArticulos(pedido.descripcion);
+  const codigoPedido = pedido.codigo || pedido.idDonacion;
 
   const crearPedidoExterno = async () => {
     if (pedidoCreado) {
@@ -80,18 +82,16 @@ const PedidoItem = ({ pedido }) => {
           <PaqueteFormModal
             show={mostrarModal}
             onClose={() => setMostrarModal(false)}
-            onPaqueteCreado={() => setMostrarModal(false)}
-            pedidos={[{
-              id_pedido: pedido.idDonacion, // para mostrar y usar externamente
-              descripcion: pedido.descripcion,
-              articulos: articulos
-            }]}
-            pedidoPreseleccionado={pedido.idDonacion}
-            idPedidoLocal={idPedidoLocal} // ✅ nuevo prop para crear en DB local
+            onPaqueteCreado={() => {
+              setMostrarModal(false);
+              if (onPaquetesCreados) onPaquetesCreados();
+            }}
+            articulosPedido={articulos}
+            codigoPedido={codigoPedido}
+            idPedidoLocal={idPedidoLocal}
             descripcionPedido={`Externa: ${pedido.descripcion}`}
-            fuenteExterna="api_v1"
-            unidades={[]}
-            catalogo={[]}
+            ciUsuario={pedido.ciUsuario}
+            idDonacion={pedido.idDonacion}
           />
         </div>
       )}

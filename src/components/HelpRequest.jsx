@@ -21,17 +21,46 @@ const HelpRequest = () => {
   // 🔥 NUEVAS FUNCIONES PARA METADATOS
   const extraerMetadatos = (descripcion) => {
     if (!descripcion) return null;
-    const match = descripcion.match(/SOL#([^|]+)\|ALMACEN:([^|]+)\|(.+)/);
-    return match ? {
-      codigo: match[1],
-      almacen: match[2],
-      descripcionOriginal: match[3]
+    // Nuevo formato: CI:...|SOL#...|IDALMACEN:...|ALMACEN:...|
+    const matchCI = descripcion.match(/^CI:([^|]+)\|SOL#([^|]+)\|IDALMACEN:([^|]+)\|ALMACEN:([^|]+)\|(.*)$/);
+    if (matchCI) {
+      return {
+        ci: matchCI[1],
+        codigo: matchCI[2],
+        id_almacen: matchCI[3],
+        almacen: matchCI[4],
+        descripcionOriginal: matchCI[5] || ''
+      };
+    }
+    // Formato anterior: SOL#...|IDALMACEN:...|ALMACEN:...|
+    const match = descripcion.match(/^SOL#([^|]+)\|IDALMACEN:([^|]+)\|ALMACEN:([^|]+)\|(.*)$/);
+    if (match) {
+      return {
+        codigo: match[1],
+        id_almacen: match[2],
+        almacen: match[3],
+        descripcionOriginal: match[4] || ''
+      };
+    }
+    // Compatibilidad con paquetes antiguos
+    const matchOld = descripcion.match(/^SOL#([^|]+)\|ALMACEN:([^|]+)\|(.+)?$/);
+    return matchOld ? {
+      codigo: matchOld[1],
+      id_almacen: undefined,
+      almacen: matchOld[2],
+      descripcionOriginal: matchOld[3] || ''
     } : null;
   };
 
   const obtenerPaquetesDeMiAlmacen = (paquetes) => {
+    const idAlmacenUsuario = localStorage.getItem('id_almacen');
     return paquetes.filter(paquete => {
       const metadatos = extraerMetadatos(paquete.descripcion);
+      // Preferir id_almacen si está disponible
+      if (metadatos && metadatos.id_almacen) {
+        return String(metadatos.id_almacen) === String(idAlmacenUsuario);
+      }
+      // Fallback: comparar por nombre
       return metadatos && metadatos.almacen === miAlmacen;
     });
   };
@@ -53,7 +82,7 @@ const HelpRequest = () => {
 
   const fetchSolicitudesExternas = async () => {
     try {
-      const res = await fetch('http://das-back.local/api/solicitudes/aprobadas/almacen');
+      const res = await fetch('http://localhost:3001/api/solicitudes/aprobadas/almacen');
       const data = await res.json();
       setPedidos(data);
     } catch (err) {
@@ -127,38 +156,25 @@ const HelpRequest = () => {
     setOrdenAsc(!ordenAsc);
   };
 
+  // Función para refrescar todas las listas (puede pasarse como prop)
+  const refrescarTodo = () => {
+    fetchSolicitudesExternas();
+    fetchPaquetes();
+    fetchDonacionesEspecie();
+    fetchCatalogo();
+  };
+
   return (
     <div className="donation-page">
       <h1 className="help-title">Enviar Donaciones</h1>
       <div className="sections">
-        
-        {/* ✅ Sección: Solicitudes Internas */}
-        <section className="section">
-          <h2>Solicitudes de ayuda Internas</h2>
-          {solicitudesInternas.length === 0 ? (
-            <p>No hay solicitudes internas disponibles.</p>
-          ) : (
-            <div className="donation-list">
-              {solicitudesInternas
-                .filter((recurso) => recurso && recurso.descripcion && recurso.codigo)
-                .map((recurso) => (
-                  <InternalRequestItem
-                    key={recurso.id}
-                    recurso={recurso}
-                    catalogo={catalogoArticulos}
-                    unidades={donacionesEspecie}
-                  />
-                ))}
-            </div>
-          )}
-        </section>
-
+        {/* ...existing code... */}
         {/* ✅ Sección: Solicitudes Externas */}
         <section className="section">
           <h2>Solicitudes de ayuda Externas</h2>
           <div className="donation-list">
             {Array.isArray(pedidos) && pedidos.map((pedido) => (
-              <PedidoItem key={pedido.idDonacion} pedido={pedido} />
+              <PedidoItem key={pedido.idDonacion} pedido={pedido} onPaquetesCreados={refrescarTodo} />
             ))}
           </div>
         </section>

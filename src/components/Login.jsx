@@ -109,8 +109,16 @@ function Login({ onLogin }) {
         
         if (usuario.rol === 2) {
           localStorage.setItem('almacen', 'Almacen Rapido');
+          localStorage.setItem('id_almacen', '');
         } else {
           localStorage.setItem('almacen', almacenSeleccionado);
+          // Buscar el id_almacen correspondiente al nombre seleccionado
+          const almacenObj = almacenes.find(a => a.nombre_almacen === almacenSeleccionado);
+          if (almacenObj) {
+            localStorage.setItem('id_almacen', almacenObj.id_almacen);
+          } else {
+            localStorage.setItem('id_almacen', '');
+          }
         }
 
         setValidationErrors({});
