@@ -1,52 +1,448 @@
 /* Contenedor general de tarjetas: en formato de grid */
 .donation-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
-  padding: 16px 0;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  padding: 0;
 }
 
 /* Tarjeta individual */
 .pedido-card {
-  background-color: #fff;
-  padding: 16px;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+  padding: 0;
+  border-radius: 20px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(20px);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   text-align: left;
+  position: relative;
+  overflow: hidden;
+  height: auto; /* Altura automática basada en contenido */
+}
+
+.pedido-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
   height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s;
+}
+
+.pedido-card:hover::before {
+  left: 100%;
 }
 
 /* Efecto al pasar el cursor */
 .pedido-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  border-color: rgba(59, 130, 246, 0.5);
 }
 
-/* Encabezado de la tarjeta */
+/* Header de la tarjeta con diseño moderno */
 .pedido-header {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(147, 197, 253, 0.05) 100%);
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  min-height: 60px; /* Altura fija para el header */
+}
+
+.pedido-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 50%, #3b82f6 100%);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { background-position: 200% 0; }
+  50% { background-position: -200% 0; }
+}
+
+.pedido-header-title {
   font-size: 1.1rem;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 8px;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: -0.025em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-/* Contenido desplegable de la tarjeta */
+.pedido-header-title::before {
+  content: '';
+}
+
+.pedido-header-id {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #64748b;
+  background: rgba(100, 116, 139, 0.1);
+  padding: 4px 12px;
+  border-radius: 12px;
+  letter-spacing: 0.025em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Indicador de expansión */
+.pedido-header-id::after {
+  content: '▼';
+  font-size: 0.8rem;
+  color: #64748b;
+  transition: transform 0.3s ease;
+}
+
+/* Cuando la tarjeta está expandida, rotar la flecha */
+.pedido-card.expandido .pedido-header-id::after {
+  transform: rotate(180deg);
+}
+
+/* Contenido principal de la tarjeta */
 .pedido-detalle {
-  margin-top: 10px;
-  border-top: 1px solid #eee;
-  padding-top: 10px;
-  color: #555;
-  font-size: 0.95rem;
+  padding: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  margin: 0;
 }
 
-/* Botón de acción */
-.pedido-detalle button {
-  margin-top: 12px;
-  width: 100%;
+/* Cuando la tarjeta está expandida */
+.pedido-card.expandido .pedido-detalle {
+  max-height: 1000px; /* Valor suficientemente grande */
+  opacity: 1;
+  padding: 24px;
+}
+
+/* Información de ubicación */
+.pedido-ubicacion {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(34, 197, 94, 0.05) 100%);
+  border-radius: 12px;
+  border-left: 4px solid #10b981;
+}
+
+.pedido-ubicacion-icon {
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 50%;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.pedido-ubicacion-text {
+  flex: 1;
+}
+
+.pedido-ubicacion-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #059669;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.pedido-ubicacion-value {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #374151;
+  line-height: 1.4;
+}
+
+/* Sección de artículos solicitados */
+.pedido-articulos {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pedido-articulos-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1e293b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pedido-articulos-title::before {
+  content: '';
+}
+
+.pedido-articulos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pedido-articulo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(248, 250, 252, 0.8);
+  border-radius: 10px;
+  border: 1px solid rgba(226, 232, 240, 0.5);
+  transition: all 0.2s ease;
+}
+
+.pedido-articulo-item:hover {
+  background: rgba(239, 246, 255, 0.8);
+  border-color: rgba(59, 130, 246, 0.3);
+  transform: translateX(4px);
+}
+
+.pedido-articulo-nombre {
   font-size: 0.95rem;
+  font-weight: 600;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pedido-articulo-nombre::before {
+  content: '•';
+  color: #3b82f6;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.pedido-articulo-cantidad {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1e293b;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 8px;
+  min-width: 32px;
+  text-align: center;
+}
+
+/* Botón de acción mejorado */
+.pedido-detalle button {
+  margin-top: auto;
+  width: 100%;
+  font-size: 1rem;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+  letter-spacing: 0.025em;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.pedido-detalle button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.6s;
+}
+
+.pedido-detalle button::after {
+  content: '';
+}
+
+.pedido-detalle button:hover::before {
+  left: 100%;
+}
+
+.pedido-detalle button:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+}
+
+.pedido-detalle button:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+}
+
+/* Efectos adicionales para la tarjeta */
+.pedido-card:hover .pedido-header::before {
+  animation-duration: 1.5s;
+}
+
+.pedido-card:hover .pedido-articulo-item {
+  transform: translateX(0);
+}
+
+/* Indicador de estado */
+.pedido-status-indicator {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.1);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .donation-list {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  
+  .pedido-card {
+    border-radius: 16px;
+  }
+  
+  .pedido-header {
+    padding: 14px 16px;
+    min-height: 50px;
+  }
+  
+  .pedido-header-title {
+    font-size: 1rem;
+  }
+  
+  .pedido-header-id {
+    font-size: 0.8rem;
+    padding: 3px 10px;
+  }
+  
+  .pedido-card.expandido .pedido-detalle {
+    padding: 20px;
+  }
+  
+  .pedido-detalle {
+    gap: 14px;
+  }
+  
+  .pedido-ubicacion {
+    padding: 14px;
+  }
+  
+  .pedido-articulo-item {
+    padding: 10px 14px;
+  }
+  
+  .pedido-detalle button {
+    padding: 14px 20px;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .donation-list {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .pedido-card {
+    border-radius: 12px;
+  }
+  
+  .pedido-header {
+    padding: 12px 14px;
+    min-height: 45px;
+  }
+  
+  .pedido-header-title {
+    font-size: 0.95rem;
+  }
+  
+  .pedido-header-id {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+  }
+  
+  .pedido-card.expandido .pedido-detalle {
+    padding: 16px;
+  }
+  
+  .pedido-detalle {
+    gap: 12px;
+  }
+  
+  .pedido-ubicacion {
+    padding: 12px;
+  }
+  
+  .pedido-ubicacion-label {
+    font-size: 0.8rem;
+  }
+  
+  .pedido-ubicacion-value {
+    font-size: 0.9rem;
+  }
+  
+  .pedido-articulos-title {
+    font-size: 0.85rem;
+  }
+  
+  .pedido-articulo-item {
+    padding: 8px 12px;
+  }
+  
+  .pedido-articulo-nombre {
+    font-size: 0.9rem;
+  }
+  
+  .pedido-articulo-cantidad {
+    font-size: 0.8rem;
+    padding: 3px 8px;
+  }
+  
+  .pedido-detalle button {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+  }
 }

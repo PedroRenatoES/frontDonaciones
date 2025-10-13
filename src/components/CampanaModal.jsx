@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import Modal from 'react-modal';
 import axios from '../axios';
 import '../styles/CampainModal.css';
+
+Modal.setAppElement('#root');
 
 function CampanaModal({ show, onClose, onCreated }) {
   const today = new Date().toISOString().split('T')[0];
@@ -56,11 +59,26 @@ function CampanaModal({ show, onClose, onCreated }) {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    validateField(name, value);
+    
+    // Limpiar error específico cuando el usuario interactúa
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
   const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);
+    
+    // Limpiar error de imagen cuando el usuario interactúa
+    if (fieldErrors.imagen) {
+      setFieldErrors(prev => ({
+        ...prev,
+        imagen: ''
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -68,8 +86,39 @@ function CampanaModal({ show, onClose, onCreated }) {
     setError('');
     setLoading(true);
 
-    const allValid = Object.entries(formData).every(([key, val]) => validateField(key, val));
-    if (!allValid || !selectedFile) {
+    // Validar todos los campos manualmente
+    const newErrors = {};
+    
+    if (!formData.nombre_campana.trim()) {
+      newErrors.nombre_campana = 'El nombre de la campaña es requerido.';
+    }
+    if (!formData.descripcion.trim()) {
+      newErrors.descripcion = 'La descripción es requerida.';
+    }
+    if (!formData.fecha_fin) {
+      newErrors.fecha_fin = 'La fecha final es requerida.';
+    }
+    if (!formData.organizador.trim()) {
+      newErrors.organizador = 'El organizador es requerido.';
+    }
+    if (!selectedFile) {
+      newErrors.imagen = 'La imagen de la campaña es requerida.';
+    }
+
+    // Validar formato de campos específicos
+    if (formData.nombre_campana && !soloLetras.test(formData.nombre_campana)) {
+      newErrors.nombre_campana = 'Solo se permiten letras y espacios.';
+    }
+    if (formData.organizador && !soloLetras.test(formData.organizador)) {
+      newErrors.organizador = 'Solo se permiten letras y espacios.';
+    }
+    if (formData.fecha_fin && formData.fecha_fin < formData.fecha_inicio) {
+      newErrors.fecha_fin = 'La fecha final no puede ser anterior a la fecha de inicio.';
+    }
+
+    setFieldErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
       setError('Por favor, corrija los errores antes de continuar.');
       setLoading(false);
       return;
@@ -102,94 +151,107 @@ function CampanaModal({ show, onClose, onCreated }) {
     }
   };
 
-  const handleBackdropClick = (e) => {
-    if (e.target.className === 'campana-modal-backdrop') {
-      onClose();
-    }
-  };
-
-  const inputClass = (name) => fieldErrors[name] ? 'error-input' : '';
+  const getInputClass = field => (fieldErrors[field] ? 'form-control error' : 'form-control');
 
   return (
-    <div className="campana-modal-backdrop" onClick={handleBackdropClick}>
-      <div className="campana-modal-content">
-        <h2>Crear Nueva Campaña</h2>
-        <form onSubmit={handleSubmit}>
-          <label>
-            Nombre de la campaña:
-            <input
-              name="nombre_campana"
-              value={formData.nombre_campana}
-              onChange={handleInputChange}
-              required
-              className={inputClass('nombre_campana')}
-            />
-            {fieldErrors.nombre_campana && <small className="error-message">{fieldErrors.nombre_campana}</small>}
-          </label>
+    <Modal
+      isOpen={show}
+      onRequestClose={onClose}
+      contentLabel="Formulario Campaña"
+      className="modal-form"
+      overlayClassName="modal-overlay"
+    >
+      <h2>Crear Nueva Campaña</h2>
+      <form onSubmit={handleSubmit}>
+        {/* Nombre de la campaña */}
+        <div className="form-group">
+          <label>Nombre de la campaña</label>
+          <input
+            type="text"
+            name="nombre_campana"
+            className={getInputClass('nombre_campana')}
+            value={formData.nombre_campana}
+            onChange={handleInputChange}
+          />
+          {fieldErrors.nombre_campana && <small className="error-message">{fieldErrors.nombre_campana}</small>}
+        </div>
 
-          <label>
-            Descripción:
-            <textarea
-              name="descripcion"
-              value={formData.descripcion}
-              onChange={handleInputChange}
-              required
-            />
-          </label>
+        {/* Descripción */}
+        <div className="form-group">
+          <label>Descripción</label>
+          <textarea
+            name="descripcion"
+            className={getInputClass('descripcion')}
+            value={formData.descripcion}
+            onChange={handleInputChange}
+            rows="4"
+          />
+          {fieldErrors.descripcion && <small className="error-message">{fieldErrors.descripcion}</small>}
+        </div>
 
-          <label>
-            Fecha de inicio:
-            <input
-              type="date"
-              name="fecha_inicio"
-              value={formData.fecha_inicio}
-              disabled
-              readOnly
-            />
-          </label>
+        {/* Fecha de inicio */}
+        <div className="form-group">
+          <label>Fecha de inicio</label>
+          <input
+            type="date"
+            name="fecha_inicio"
+            className="form-control"
+            value={formData.fecha_inicio}
+            disabled
+            readOnly
+          />
+        </div>
 
-          <label>
-            Fecha final:
-            <input
-              type="date"
-              name="fecha_fin"
-              value={formData.fecha_fin}
-              onChange={handleInputChange}
-              required
-              className={inputClass('fecha_fin')}
-              min={formData.fecha_inicio}
-            />
-            {fieldErrors.fecha_fin && <small className="error-message">{fieldErrors.fecha_fin}</small>}
-          </label>
+        {/* Fecha final */}
+        <div className="form-group">
+          <label>Fecha final</label>
+          <input
+            type="date"
+            name="fecha_fin"
+            className={getInputClass('fecha_fin')}
+            value={formData.fecha_fin}
+            onChange={handleInputChange}
+            min={formData.fecha_inicio}
+          />
+          {fieldErrors.fecha_fin && <small className="error-message">{fieldErrors.fecha_fin}</small>}
+        </div>
 
-          <label>
-            Organizador:
-            <input
-              name="organizador"
-              value={formData.organizador}
-              onChange={handleInputChange}
-              required
-              className={inputClass('organizador')}
-            />
-            {fieldErrors.organizador && <small className="error-message">{fieldErrors.organizador}</small>}
-          </label>
+        {/* Organizador */}
+        <div className="form-group">
+          <label>Organizador</label>
+          <input
+            type="text"
+            name="organizador"
+            className={getInputClass('organizador')}
+            value={formData.organizador}
+            onChange={handleInputChange}
+          />
+          {fieldErrors.organizador && <small className="error-message">{fieldErrors.organizador}</small>}
+        </div>
 
-          <label>
-            Imagen de la campaña:
-            <input type="file" accept="image/*" onChange={handleFileChange} required />
-          </label>
+        {/* Imagen de la campaña */}
+        <div className="form-group">
+          <label>Imagen de la campaña</label>
+          <input 
+            type="file" 
+            accept="image/*" 
+            onChange={handleFileChange} 
+            className={getInputClass('imagen')}
+          />
+          {fieldErrors.imagen && <small className="error-message">{fieldErrors.imagen}</small>}
+        </div>
 
-          {error && <p className="error-msg">{error}</p>}
+        {error && <p className="error-msg">{error}</p>}
 
-          <button className="campana-create-button" type="submit" disabled={loading}>
-            {loading ? 'Creando...' : 'Crear Campaña'}
-          </button>
-          <button className="campana-cancel-button" type="button" onClick={onClose} disabled={loading}>
-            Cancelar
-          </button>
-        </form>
-      </div>
-    </div>
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={loading}
+        >
+          {loading ? 'Creando...' : 'Crear Campaña'}
+        </button>
+      </form>
+    </Modal>
   );
 }
 

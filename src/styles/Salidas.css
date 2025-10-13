@@ -1,71 +1,421 @@
+/* Reset y tipografía base */
 .salidas-main-container {
     padding: 40px;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 1200px;
+    margin: 0 auto;
+    background: transparent;
     min-height: 100vh;
-    background: linear-gradient(#f7f1d9, #fff);
-    font-family: 'Segoe UI', sans-serif;
+    position: relative;
+    z-index: 10;
 }
 
+/* Título principal */
 .salidas-title {
+    font-size: 2.8rem;
+    font-weight: 700;
+    margin-bottom: 50px;
+    color: #374151;
     text-align: center;
-    margin-bottom: 2.5rem;
-    color: #1f2937;
-    font-size: 2rem;
-    font-weight: bold;
+    letter-spacing: -0.025em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    animation: slideInFromTop 0.8s ease-out;
+    position: relative;
+    z-index: 10;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Contenedor de secciones */
+.salidas-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    padding: 0;
+}
+
+/* Estilos para las secciones */
 .salidas-section {
-    margin-bottom: 3rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+    border-radius: 24px;
+    padding: 32px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    animation: slideInFromTop 0.8s ease-out;
+    position: relative;
+    overflow: visible;
 }
 
 .salidas-subtitle {
-    color: #1f2937;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    border-bottom: 2px solid #ffda35;
-    padding-bottom: 0.3rem;
+    font-size: 1.8rem;
+    color: #1e293b;
+    font-weight: 700;
+    margin-bottom: 24px;
+    letter-spacing: -0.025em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding-bottom: 16px;
+    border-bottom: 2px solid rgba(59, 130, 246, 0.1);
 }
 
+/* Tabla moderna */
 .salidas-table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    background-color: white;
-    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.9) 100%);
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
     font-size: 0.95rem;
     margin-top: 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .salidas-table th {
-    background-color: #ffefa7;
-    color: #111827;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
     font-weight: 600;
-    padding: 1rem;
+    padding: 1.2rem 1rem;
     text-align: left;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 0.9rem;
+    letter-spacing: 0.025em;
+    text-transform: uppercase;
 }
 
 .salidas-table td {
-    padding: 1rem;
-    color: #4b5563;
-    border-bottom: 1px solid #f1f1f1;
+    padding: 1.2rem 1rem;
+    color: #374151;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
 .salidas-table tr:nth-child(even) {
-    background-color: #fff8d7;
+    background: linear-gradient(135deg, rgba(248, 250, 252, 0.5) 0%, rgba(241, 245, 249, 0.5) 100%);
 }
 
 .salidas-table tr:hover {
-    background-color: #eef2ff;
-    cursor: pointer;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(147, 197, 253, 0.05) 100%);
+    transform: scale(1.01);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
 }
 
+.salidas-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Formulario moderno */
 .salidas-form-group {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
     flex-wrap: wrap;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(248, 250, 252, 0.7) 100%);
+    padding: 1.5rem;
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
 }
 
+.salidas-label {
+    font-weight: 600;
+    color: #374151;
+    font-size: 1rem;
+    letter-spacing: -0.025em;
+    min-width: 180px;
+}
+
+.salidas-select {
+    flex: 1;
+    padding: 0.875rem 1rem;
+    border: 2px solid rgba(226, 232, 240, 0.8);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #374151;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+    min-width: 250px;
+}
+
+.salidas-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    background: rgba(255, 255, 255, 1);
+    transform: translateY(-1px);
+}
+
+.salidas-select:hover {
+    border-color: #94a3b8;
+    background: rgba(255, 255, 255, 1);
+}
+
+.salidas-button {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border: none;
+    padding: 0.875rem 2rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.salidas-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.salidas-button:hover::before {
+    left: 100%;
+}
+
+.salidas-button:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+}
+
+.salidas-button:active {
+    transform: translateY(0) scale(1.02);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.salidas-button:disabled {
+    background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 2px 8px rgba(156, 163, 175, 0.3);
+}
+
+/* Animaciones */
+@keyframes slideInFromTop {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200px 0;
+    }
+    100% {
+        background-position: calc(200px + 100%) 0;
+    }
+}
+
+/* Estados de carga */
+.salidas-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    color: #6b7280;
+    font-size: 0.95rem;
+}
+
+.salidas-loading::after {
+    content: '';
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e5e7eb;
+    border-top: 2px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-left: 0.5rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Estados vacíos */
+.salidas-empty {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #6b7280;
+    font-size: 1rem;
+    background: linear-gradient(135deg, rgba(248, 250, 252, 0.5) 0%, rgba(241, 245, 249, 0.5) 100%);
+    border-radius: 16px;
+    border: 2px dashed rgba(156, 163, 175, 0.3);
+    margin-top: 1rem;
+}
+
+.salidas-empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Indicadores de estado */
+.salidas-error {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, rgba(254, 226, 226, 0.9) 0%, rgba(252, 165, 165, 0.9) 100%);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    animation: slideInDown 0.3s ease-out;
+    backdrop-filter: blur(10px);
+}
+
+.salidas-error-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.salidas-error-message {
+    color: #dc2626;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.salidas-success {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, rgba(220, 252, 231, 0.9) 0%, rgba(187, 247, 208, 0.9) 100%);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    animation: slideInDown 0.3s ease-out;
+    backdrop-filter: blur(10px);
+}
+
+.salidas-success-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.salidas-success-message {
+    color: #16a34a;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .salidas-main-container {
+        padding: 20px;
+    }
+    
+    .salidas-title {
+        font-size: 2.2rem;
+        margin-bottom: 30px;
+    }
+    
+    .salidas-section {
+        padding: 20px;
+        border-radius: 16px;
+    }
+    
+    .salidas-subtitle {
+        font-size: 1.5rem;
+    }
+    
+    .salidas-form-group {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+    
+    .salidas-label {
+        min-width: auto;
+        text-align: center;
+    }
+    
+    .salidas-select {
+        min-width: auto;
+    }
+    
+    .salidas-table {
+        font-size: 0.85rem;
+    }
+    
+    .salidas-table th,
+    .salidas-table td {
+        padding: 0.75rem 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .salidas-main-container {
+        padding: 15px;
+    }
+    
+    .salidas-title {
+        font-size: 1.8rem;
+    }
+    
+    .salidas-section {
+        padding: 15px;
+    }
+    
+    .salidas-subtitle {
+        font-size: 1.3rem;
+    }
+    
+    .salidas-button {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.85rem;
+    }
+}

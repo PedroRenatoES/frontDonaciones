@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
 import PaqueteFormModal from './SendDonations.jsx';
 import '../styles/HelpRequestItem.css';
 import axios from '../axios';
@@ -8,8 +9,6 @@ const PedidoItem = ({ pedido, onPaquetesCreados }) => {
   const [idPedidoLocal, setIdPedidoLocal] = useState(null); // el id numérico real
   const [mostrarModal, setMostrarModal] = useState(false);
   const [pedidoCreado, setPedidoCreado] = useState(false);
-  
-
 
   // Extrae los artículos y el código del pedido externo
   const obtenerArticulos = (descripcion) => {
@@ -39,46 +38,62 @@ const PedidoItem = ({ pedido, onPaquetesCreados }) => {
       };
       
   
-      console.log('📦 Payload que se envía al backend:', JSON.stringify(payload, null, 2)); // 🔍 LOG CLAVE
+      console.log('Payload que se envía al backend:', JSON.stringify(payload, null, 2)); // 🔍 LOG CLAVE
   
       const response = await axios.post('/pedidos-de-ayuda/', payload);
       const { id_pedido } = response.data.pedido;  
       console.log('✅ Pedido # ', id_pedido, ', creado');
       
       
-      alert(`Pedido Externo creado con ID: ${id_pedido}`);
       setIdPedidoLocal(id_pedido);
       setPedidoCreado(true);
       setMostrarModal(true);
   
     } catch (err) {
       console.error('❌ Error al crear pedido externo:', err.response?.data || err.message);
-      alert('No se pudo crear el pedido. Intenta nuevamente.');
     }
   };
     return (
-    <div className="pedido-card">
+    <div className={`pedido-card ${expandido ? 'expandido' : ''}`}>
+      {/* Indicador de estado */}
+      <div className="pedido-status-indicator"></div>
+      
+      {/* Header de la tarjeta */}
       <div className="pedido-header" onClick={() => setExpandido(!expandido)}>
-        <strong>Solicitud Externa</strong> — {pedido.idDonacion}
+        <div className="pedido-header-title">Solicitud Externa</div>
+        <div className="pedido-header-id">— {pedido.idDonacion}</div>
       </div>
 
-      {expandido && (
-        <div className="pedido-detalle">
-          <p><strong>Ubicación:</strong> {pedido.ubicacion}</p>
-          <p><strong>Artículos Solicitados:</strong></p>
-          <ul>
+      {/* Contenido expandible */}
+      <div className="pedido-detalle">
+        {/* Información de ubicación */}
+        <div className="pedido-ubicacion">
+          <div className="pedido-ubicacion-text">
+            <div className="pedido-ubicacion-label">Ubicación</div>
+            <div className="pedido-ubicacion-value">{pedido.ubicacion}</div>
+          </div>
+        </div>
+
+        {/* Sección de artículos solicitados */}
+        <div className="pedido-articulos">
+          <div className="pedido-articulos-title">Artículos Solicitados</div>
+          <div className="pedido-articulos-list">
             {articulos.map((item, idx) => (
-              <li key={idx}>{item.nombre} — {item.cantidad}</li>
+              <div key={idx} className="pedido-articulo-item">
+                <div className="pedido-articulo-nombre">{item.nombre}</div>
+                <div className="pedido-articulo-cantidad">{item.cantidad}</div>
+              </div>
             ))}
-          </ul>
+          </div>
+        </div>
 
-          <button
-            className="btn btn-outline-primary mt-3"
-            onClick={crearPedidoExterno}
-          >
-            Empezar armado de paquete
-          </button>
+        {/* Botón de acción */}
+        <button onClick={crearPedidoExterno}>
+          Empezar armado de paquete
+        </button>
 
+        {/* Modal renderizado fuera de la tarjeta usando portal */}
+        {mostrarModal && ReactDOM.createPortal(
           <PaqueteFormModal
             show={mostrarModal}
             onClose={() => setMostrarModal(false)}
@@ -92,9 +107,10 @@ const PedidoItem = ({ pedido, onPaquetesCreados }) => {
             descripcionPedido={`Externa: ${pedido.descripcion}`}
             ciUsuario={pedido.ciUsuario}
             idDonacion={pedido.idDonacion}
-          />
-        </div>
-      )}
+          />,
+          document.body
+        )}
+      </div>
     </div>
   );
 };

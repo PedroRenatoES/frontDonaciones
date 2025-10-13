@@ -9,6 +9,9 @@ const Salidas = () => {
   const [idPaqueteSeleccionado, setIdPaqueteSeleccionado] = useState('');
   const [usuarioId] = useState(localStorage.getItem('id'));
   const [miAlmacen] = useState(localStorage.getItem('almacen'));
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   useEffect(() => {
     const fetchSalidas = async () => {
@@ -49,11 +52,23 @@ const Salidas = () => {
     fetchPaquetesNoEnviados();
   }, []);
 
-  const handleRegistrarSalida = async () => {
-    if (!idPaqueteSeleccionado || !usuarioId) {
-      alert('Por favor, selecciona un paquete y asegúrate de estar autenticado.');
+  const handleRegistrarSalida = async (e) => {
+    if (e) e.preventDefault();
+    console.log('🔍 Validando:', { idPaqueteSeleccionado, usuarioId });
+    
+    if (!idPaqueteSeleccionado) {
+      setError('Por favor, selecciona un paquete de la lista.');
       return;
     }
+    
+    if (!usuarioId) {
+      setError('No estás autenticado. Por favor, inicia sesión nuevamente.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    setSuccess('');
 
     try {
       const response = await axios.post('/salidas-almacen/', {
@@ -61,7 +76,7 @@ const Salidas = () => {
         id_usuario: usuarioId,
       });
 
-      alert('Salida registrada exitosamente');
+      setSuccess('Salida registrada exitosamente');
       setSalidas((prev) => [...prev, response.data]);
 
       // Obtener info del paquete
@@ -74,9 +89,14 @@ const Salidas = () => {
       // Generar PDF
       generarPDFSalida(paqueteInfo, nombreCompleto);
 
+      // Limpiar selección
+      setIdPaqueteSeleccionado('');
+
     } catch (error) {
       console.error('Error al registrar salida:', error);
-      alert('Hubo un error al registrar la salida');
+      setError('Hubo un error al registrar la salida. Intenta nuevamente.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -112,50 +132,84 @@ const Salidas = () => {
     <div className="salidas-main-container">
       <h1 className="salidas-title">Historial de Salidas</h1>
 
-      <section className="salidas-section">
-        <h2 className="salidas-subtitle">Salidas Registradas</h2>
-        <table className="salidas-table">
-          <thead>
-            <tr>
-              <th>Paquete</th>
-              <th>Fecha</th>
-              <th>Usuario</th>
-            </tr>
-          </thead>
-          <tbody>
-            {salidas.map((s) => (
-              <tr key={s.id_salida}>
-                <td>{s.nombre_paquete}</td>
-                <td>{new Date(s.fecha_salida).toLocaleDateString()}</td>
-                <td>{`${s.nombre_usuario} ${s.apellido_paterno} ${s.apellido_materno}`}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+      <div className="salidas-sections">
+        <section className="salidas-section">
+          <h2 className="salidas-subtitle">Salidas Registradas</h2>
+          {salidas.length === 0 ? (
+            <div className="salidas-empty">
+              <div className="salidas-empty-icon">📦</div>
+              <p>No hay salidas registradas aún</p>
+            </div>
+          ) : (
+            <table className="salidas-table">
+              <thead>
+                <tr>
+                  <th>Paquete</th>
+                  <th>Fecha</th>
+                  <th>Usuario</th>
+                </tr>
+              </thead>
+              <tbody>
+                {salidas.map((s) => (
+                  <tr key={s.id_salida}>
+                    <td>{s.nombre_paquete}</td>
+                    <td>{new Date(s.fecha_salida).toLocaleDateString()}</td>
+                    <td>{`${s.nombre_usuario} ${s.apellido_paterno} ${s.apellido_materno}`}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
 
-      <section className="salidas-section">
-        <h2 className="salidas-subtitle">Registrar Nueva Salida</h2>
-        <div className="salidas-form-group">
-          <label htmlFor="paquete" className="salidas-label">Seleccionar Paquete:</label>
-          <select
-            id="paquete"
-            className="salidas-select"
-            value={idPaqueteSeleccionado}
-            onChange={(e) => setIdPaqueteSeleccionado(e.target.value)}
+        <section className="salidas-section">
+          <h2 className="salidas-subtitle">Registrar Nueva Salida</h2>
+          
+          {/* Indicadores de estado */}
+          {error && (
+            <div className="salidas-error">
+              <div className="salidas-error-icon">⚠️</div>
+              <div className="salidas-error-message">{error}</div>
+            </div>
+          )}
+          
+          {success && (
+            <div className="salidas-success">
+              <div className="salidas-success-icon">✅</div>
+              <div className="salidas-success-message">{success}</div>
+            </div>
+          )}
+          
+          <div className="salidas-form-group">
+            <label htmlFor="paquete" className="salidas-label">Seleccionar Paquete:</label>
+            <select
+              id="paquete"
+              className="salidas-select"
+              value={idPaqueteSeleccionado}
+              onChange={(e) => {
+                setIdPaqueteSeleccionado(e.target.value);
+                setError('');
+                setSuccess('');
+              }}
+            >
+              <option value="">Seleccione un paquete</option>
+              {paquetes.map((p) => (
+                <option key={p.id_paquete} value={p.id_paquete}>
+                  {p.nombre_paquete}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button 
+            type="button"
+            className="salidas-button" 
+            onClick={handleRegistrarSalida}
+            disabled={!idPaqueteSeleccionado || loading}
           >
-            <option value="">Seleccione un paquete</option>
-            {paquetes.map((p) => (
-              <option key={p.id_paquete} value={p.id_paquete}>
-                {p.nombre_paquete}
-              </option>
-            ))}
-          </select>
-        </div>
-        <button className="salidas-button" onClick={handleRegistrarSalida}>
-          Registrar Salida
-        </button>
-      </section>
+            {loading ? 'Registrando...' : 'Registrar Salida'}
+          </button>
+        </section>
+      </div>
     </div>
   );
 };

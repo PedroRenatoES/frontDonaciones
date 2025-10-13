@@ -181,7 +181,7 @@ const HelpRequest = () => {
 
         {/* ✅ Sección: Mis Tareas de Almacén - NUEVA (REEMPLAZA Paquetes en Proceso) */}
         <section className="section">
-          <h2>🎯 Mis Tareas - {miAlmacen}</h2>
+          <h2>Mis Tareas - {miAlmacen}</h2>
           {obtenerPaquetesDeMiAlmacen(paquetesProceso).length === 0 ? (
             <p>No hay tareas asignadas a tu almacén.</p>
           ) : (

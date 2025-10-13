@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from '../axios';
 import axiosPublic from '../axiosPublic';
+import '../styles/PaqueteFormModal.css';
 
 // Nuevas props: pedidoPreseleccionado, descripcionPedido
 function PaqueteFormModal({
@@ -20,6 +21,38 @@ function PaqueteFormModal({
   const [catalogo, setCatalogo] = useState([]);
   // Estructura agrupada: { nombreArticulo: { id_almacen: { nombre_almacen, stock, cantidad_asignada, donaciones: [ { id_donacion_especie, cantidad_restante } ] } } }
   const [asignacion, setAsignacion] = useState({});
+  const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
+  const [mensajeConfirmacion, setMensajeConfirmacion] = useState('');
+  const [tipoConfirmacion, setTipoConfirmacion] = useState('success'); // 'success', 'error', 'warning'
+  const [errorValidacion, setErrorValidacion] = useState('');
+  const errorRef = useRef(null);
+
+  // Manejar tecla Escape para cerrar modal
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    if (show) {
+      document.addEventListener('keydown', handleEscape);
+    }
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [show, onClose]);
+
+  // Scroll automático al error cuando aparece
+  useEffect(() => {
+    if (errorValidacion && errorRef.current) {
+      setTimeout(() => {
+        errorRef.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start',
+          inline: 'nearest'
+        });
+      }, 100); // Pequeño delay para que la animación termine
+    }
+  }, [errorValidacion]);
 
   useEffect(() => {
     if (show) {
@@ -69,7 +102,7 @@ function PaqueteFormModal({
           }
           setAsignacion(agrupado);
         } catch (error) {
-          alert('No se pudieron cargar donaciones, almacenes o catálogo.');
+          mostrarModalConfirmacion('No se pudieron cargar donaciones, almacenes o catálogo.', 'error');
         }
       };
       fetchData();
@@ -103,12 +136,21 @@ function PaqueteFormModal({
 
   // Validación y creación de paquetes agrupados por almacén
   const handleCrearPaquetes = async () => {
+    // Limpiar errores previos
+    setErrorValidacion('');
+    
     // Validar que la suma asignada para cada artículo sea igual a lo solicitado
+    const errores = [];
     for (const art of articulosPedido) {
       if (sumaAsignada(art.nombre) !== art.cantidad) {
-        alert(`Debes asignar exactamente ${art.cantidad} unidades de ${art.nombre}`);
-        return;
+        errores.push(`Debes asignar exactamente ${art.cantidad} unidades de ${art.nombre}`);
       }
+    }
+    
+    // Si hay errores, mostrarlos todos y salir
+    if (errores.length > 0) {
+      setErrorValidacion(errores.join('. '));
+      return;
     }
 
     // Repartir cantidades asignadas por almacén entre donaciones individuales
@@ -181,98 +223,192 @@ function PaqueteFormModal({
           const url = `http://localhost:3001/donaciones/armado/${idDonacion}`;
           console.log('[POST EXTERNO] Enviando a:', url);
           console.log('[POST EXTERNO] Payload:', { ciUsuario });
-          alert(`[DEBUG] Enviando POST externo a: ${url} con ciUsuario: ${ciUsuario}`);
+          console.log(`[DEBUG] Enviando POST externo a: ${url} con ciUsuario: ${ciUsuario}`);
           await axiosPublic.post(url, {
             ciUsuario: ciUsuario
           });
         } catch (err) {
           console.error('Error al enviar POST externo (aceptar pedido):', err);
-          alert('[ERROR] No se pudo enviar el POST externo. Revisa la consola.');
+          mostrarModalConfirmacion('No se pudo enviar el POST externo. Revisa la consola.', 'error');
         }
       } else {
-        alert(`[DEBUG] No se envió POST externo. ciUsuario: ${ciUsuario}, idDonacion: ${idDonacion}`);
+        console.log(`[DEBUG] No se envió POST externo. ciUsuario: ${ciUsuario}, idDonacion: ${idDonacion}`);
       }
 
-      alert('Paquetes creados correctamente');
+      mostrarModalConfirmacion('Paquetes creados correctamente', 'success');
       onPaqueteCreado && onPaqueteCreado();
-      onClose && onClose();
     } catch (err) {
-      alert('Error al crear paquetes');
+      mostrarModalConfirmacion('Error al crear paquetes', 'error');
+    }
+  };
+
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  const mostrarModalConfirmacion = (mensaje, tipo = 'success') => {
+    setMensajeConfirmacion(mensaje);
+    setTipoConfirmacion(tipo);
+    setMostrarConfirmacion(true);
+  };
+
+  const cerrarModalConfirmacion = () => {
+    setMostrarConfirmacion(false);
+    if (tipoConfirmacion === 'success') {
+      onClose();
     }
   };
 
   return (
-    <div className="modal-backdrop-custom">
-      <div className="modal-dialog" style={{ maxWidth: '1100px' }}>
-        <div className="modal-content p-3">
-          <div className="modal-header">
-            <h5 className="modal-title">Asignar Donaciones a Almacenes</h5>
-            <button type="button" className="btn-close" onClick={onClose}></button>
-          </div>
-          {descripcionPedido && (
-            <div className="alert alert-info">
-              <strong>Pedido seleccionado:</strong> {descripcionPedido}
-            </div>
-          )}
-          <div className="modal-body">
-            <div className="mb-3">
-              <label className="form-label">Nombre del Paquete</label>
-              <input type="text" className="form-control" value={codigoPedido} disabled />
-              <div className="form-text">El nombre del paquete es el código de la solicitud y no puede cambiarse.</div>
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Descripción</label>
-              <textarea
-                className="form-control"
-                value={descripcion}
-                onChange={e => setDescripcion(e.target.value)}
-              />
-            </div>
-            <h5>Asignar artículos desde donaciones disponibles</h5>
-            {articulosPedido.map((art, idx) => {
-              const porAlmacen = asignacion[art.nombre] || {};
-              return (
-                <div key={art.nombre + idx} style={{ marginBottom: 32, border: '1px solid #eee', borderRadius: 8, padding: 12 }}>
-                  <div style={{ fontWeight: 'bold', fontSize: '1.1em', marginBottom: 8 }}>{art.nombre} <span style={{ color: '#888', fontWeight: 'normal' }}>(Requerido: {art.cantidad})</span></div>
-                  <table className="table table-bordered">
-                    <thead>
-                      <tr>
-                        <th>Almacén</th>
-                        <th>Stock disponible</th>
-                        <th>Cantidad a asignar</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {Object.entries(porAlmacen).map(([idAlmacen, info]) => (
-                        <tr key={idAlmacen}>
-                          <td>{info.nombre_almacen}</td>
-                          <td>{info.stock}</td>
-                          <td>
-                            <input
-                              type="number"
-                              min={0}
-                              max={info.stock}
-                              value={info.cantidad_asignada}
-                              onChange={e => handleAsignacionChange(art.nombre, idAlmacen, e.target.value)}
-                            />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  <div style={{ color: sumaAsignada(art.nombre) === art.cantidad ? 'green' : 'red', fontWeight: 'bold' }}>
-                    Total asignado: {sumaAsignada(art.nombre)} / {art.cantidad}
-                  </div>
+    <div className="paquete-modal-wrapper" onClick={handleBackdropClick}>
+      <div className="paquete-modal-card">
+        <button 
+          className="paquete-modal-close-btn" 
+          onClick={onClose}
+          title="Cerrar modal"
+        ></button>
+        
+        <h4 className="paquete-modal-title">Asignar Donaciones a Almacenes</h4>
+
+        {/* Indicador de Error de Validación */}
+        {errorValidacion && (
+          <div ref={errorRef} className="error-validacion">
+            <div className="error-icon">⚠</div>
+            <div className="error-mensaje">
+              {errorValidacion.includes('. ') ? (
+                <div className="error-lista">
+                  {errorValidacion.split('. ').map((error, index) => (
+                    <div key={index} className="error-item">
+                      • {error}
+                    </div>
+                  ))}
                 </div>
-              );
-            })}
+              ) : (
+                errorValidacion
+              )}
+            </div>
           </div>
-          <div className="modal-footer">
-            <button className="btn btn-secondary" onClick={onClose}>Cancelar</button>
-            <button className="btn btn-primary" onClick={handleCrearPaquetes}>Confirmar Asignación</button>
+        )}
+
+        {descripcionPedido && (
+          <div className="pedido-info">
+            <div className="pedido-info-label">Pedido seleccionado:</div>
+            <div className="pedido-info-content">
+              <div className="pedido-info-value">{descripcionPedido}</div>
+            </div>
+          </div>
+        )}
+
+        <div className="formulario-section">
+          <div className="form-group">
+            <label className="form-label">Nombre del Paquete</label>
+            <input 
+              type="text" 
+              className="form-control" 
+              value={codigoPedido} 
+              disabled 
+            />
+            <div className="form-text">El nombre del paquete es el código de la solicitud y no puede cambiarse.</div>
+          </div>
+          
+          <div className="form-group">
+            <label className="form-label">Descripción</label>
+            <textarea
+              className="form-control"
+              value={descripcion}
+              onChange={e => setDescripcion(e.target.value)}
+              rows={3}
+              placeholder="Descripción del paquete..."
+            />
           </div>
         </div>
+
+        <div className="asignacion-section">
+          <h5 className="asignacion-title">Asignar artículos desde donaciones disponibles</h5>
+          
+          {articulosPedido.map((art, idx) => {
+            const porAlmacen = asignacion[art.nombre] || {};
+            return (
+              <div key={art.nombre + idx} className="articulo-card">
+                <div className="articulo-header">
+                  <div className="articulo-nombre">{art.nombre}</div>
+                  <div className="articulo-requerido">Requerido: {art.cantidad}</div>
+                </div>
+                
+                <table className="asignacion-table">
+                  <thead>
+                    <tr>
+                      <th>Almacén</th>
+                      <th>Stock disponible</th>
+                      <th>Cantidad a asignar</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(porAlmacen).map(([idAlmacen, info]) => (
+                      <tr key={idAlmacen}>
+                        <td>{info.nombre_almacen}</td>
+                        <td>{info.stock}</td>
+                        <td>
+                          <input
+                            type="text"
+                            className="input-asignacion"
+                            value={info.cantidad_asignada || ''}
+                            onChange={e => handleAsignacionChange(art.nombre, idAlmacen, e.target.value)}
+                            placeholder="0"
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                
+                <div style={{ 
+                  color: sumaAsignada(art.nombre) === art.cantidad ? '#28a745' : '#dc3545', 
+                  fontWeight: 'bold',
+                  textAlign: 'center',
+                  marginTop: '16px',
+                  padding: '8px',
+                  backgroundColor: sumaAsignada(art.nombre) === art.cantidad ? 'rgba(40, 167, 69, 0.1)' : 'rgba(220, 53, 69, 0.1)',
+                  borderRadius: '8px'
+                }}>
+                  Total asignado: {sumaAsignada(art.nombre)} / {art.cantidad}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="modal-footer">
+          <button className="btn-modal btn-secondary" onClick={onClose}>
+            Cancelar
+          </button>
+          <button className="btn-modal btn-primary" onClick={handleCrearPaquetes}>
+            Confirmar Asignación
+          </button>
+        </div>
       </div>
+
+      {/* Modal de Confirmación */}
+      {mostrarConfirmacion && (
+        <div className="confirmacion-modal-wrapper" onClick={cerrarModalConfirmacion}>
+          <div className="confirmacion-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className={`confirmacion-icon ${tipoConfirmacion}`}>
+              {tipoConfirmacion === 'success' && '✓'}
+              {tipoConfirmacion === 'error' && '✗'}
+              {tipoConfirmacion === 'warning' && '⚠'}
+            </div>
+            <div className="confirmacion-mensaje">{mensajeConfirmacion}</div>
+            <button 
+              className={`confirmacion-btn ${tipoConfirmacion}`}
+              onClick={cerrarModalConfirmacion}
+            >
+              {tipoConfirmacion === 'success' ? 'Continuar' : 'Entendido'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

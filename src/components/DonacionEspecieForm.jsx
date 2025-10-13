@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Select from 'react-select';
 import axios from '../axios';
 
-function DonacionEspecieForm({ data, setData, articulos, almacenes }) {
+function DonacionEspecieForm({ data, setData, articulos, almacenes, fieldErrors = {}, setFieldErrors }) {
   const [espaciosFiltrados, setEspaciosFiltrados] = useState([]);
   const [tallas, setTallas] = useState([]);
   const [generos, setGeneros] = useState([]);
@@ -155,10 +155,30 @@ function DonacionEspecieForm({ data, setData, articulos, almacenes }) {
                     id_genero: '',
                     id_talla: ''
                   }));
+                  
+                  // Limpiar error del artículo cuando el usuario interactúa
+                  if (fieldErrors.id_articulo && setFieldErrors) {
+                    setFieldErrors(prev => ({
+                      ...prev,
+                      id_articulo: ''
+                    }));
+                  }
                 }}
                 value={opcionesArticulos.find(opt => opt.value === data.id_articulo) || null}
                 isClearable
-                styles={{ container: (base) => ({ ...base, flex: 1 }) }}
+                styles={{ 
+                  container: (base) => ({ 
+                    ...base, 
+                    flex: 1,
+                    ...(fieldErrors.id_articulo && {
+                      '& .react-select__control': {
+                        borderColor: '#dc2626',
+                        boxShadow: '0 0 0 2px rgba(220, 38, 38, 0.1)'
+                      }
+                    })
+                  }) 
+                }}
+                className={fieldErrors.id_articulo ? 'field-error' : ''}
               />
               <button
                 onClick={() => setModalArticuloAbierto(true)}
@@ -175,6 +195,9 @@ function DonacionEspecieForm({ data, setData, articulos, almacenes }) {
                 +
               </button>
             </div>
+            {fieldErrors.id_articulo && (
+              <div className="field-error-message">{fieldErrors.id_articulo}</div>
+            )}
           </div>
 
           <div className="mb-3">
@@ -248,6 +271,9 @@ function DonacionEspecieForm({ data, setData, articulos, almacenes }) {
               </div>
             )}
           </div>
+          {fieldErrors.id_espacio && (
+            <div className="field-error-message">{fieldErrors.id_espacio}</div>
+          )}
         </div>
 
         {/* 3. Detalles del artículo */}
@@ -256,7 +282,7 @@ function DonacionEspecieForm({ data, setData, articulos, almacenes }) {
             <label><strong>Cantidad</strong></label>
             <input
               type="number"
-              className="form-control"
+              className={`form-control ${fieldErrors.cantidad ? 'field-error' : ''}`}
               placeholder="Cantidad"
               min="1"
               value={data.cantidad}
@@ -264,18 +290,39 @@ function DonacionEspecieForm({ data, setData, articulos, almacenes }) {
                 const valor = e.target.value;
                 if (parseFloat(valor) >= 0 || valor === '') {
                   setData({ ...data, cantidad: valor });
+                  
+                  // Limpiar error de la cantidad cuando el usuario interactúa
+                  if (fieldErrors.cantidad && setFieldErrors) {
+                    setFieldErrors(prev => ({
+                      ...prev,
+                      cantidad: ''
+                    }));
+                  }
                 }
               }}
             />
+            {fieldErrors.cantidad && (
+              <div className="field-error-message">{fieldErrors.cantidad}</div>
+            )}
           </div>
 
           
           <div className="mb-3">
             <label><strong>Unidad de medida</strong></label>
             <select
-              className="form-select"
+              className={`form-select ${fieldErrors.id_unidad ? 'field-error' : ''}`}
               value={data.id_unidad}
-              onChange={e => setData({ ...data, id_unidad: parseInt(e.target.value) })}
+              onChange={e => {
+                setData({ ...data, id_unidad: parseInt(e.target.value) });
+                
+                // Limpiar error de la unidad cuando el usuario interactúa
+                if (fieldErrors.id_unidad && setFieldErrors) {
+                  setFieldErrors(prev => ({
+                    ...prev,
+                    id_unidad: ''
+                  }));
+                }
+              }}
             >
               <option value="">Seleccione unidad</option>
               {unidades.map(u => (
@@ -284,14 +331,27 @@ function DonacionEspecieForm({ data, setData, articulos, almacenes }) {
                 </option>
               ))}
             </select>
+            {fieldErrors.id_unidad && (
+              <div className="field-error-message">{fieldErrors.id_unidad}</div>
+            )}
           </div>
 
           <div className="mb-3">
             <label><strong>Estado del artículo</strong></label>
             <select
-              className="form-select"
+              className={`form-select ${fieldErrors.estado_articulo ? 'field-error' : ''}`}
               value={data.estado_articulo}
-              onChange={e => setData({ ...data, estado_articulo: e.target.value })}
+              onChange={e => {
+                setData({ ...data, estado_articulo: e.target.value });
+                
+                // Limpiar error del estado cuando el usuario interactúa
+                if (fieldErrors.estado_articulo && setFieldErrors) {
+                  setFieldErrors(prev => ({
+                    ...prev,
+                    estado_articulo: ''
+                  }));
+                }
+              }}
             >
               <option value="">Seleccione estado</option>
               {esRopa() ? (
@@ -307,6 +367,9 @@ function DonacionEspecieForm({ data, setData, articulos, almacenes }) {
                 </>
               )}
             </select>
+            {fieldErrors.estado_articulo && (
+              <div className="field-error-message">{fieldErrors.estado_articulo}</div>
+            )}
           </div>
 
           <div className="mb-3">

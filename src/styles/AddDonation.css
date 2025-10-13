@@ -566,6 +566,85 @@ textarea:hover {
     }
 }
 
+/* Indicador de errores de validación */
+.validation-errors {
+    background: linear-gradient(135deg, rgba(254, 226, 226, 0.95) 0%, rgba(252, 165, 165, 0.95) 100%);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.1);
+    animation: slideInDown 0.3s ease-out;
+}
+
+.validation-errors-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.validation-errors-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.validation-errors-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #dc2626;
+    letter-spacing: -0.025em;
+}
+
+.validation-errors-message {
+    font-size: 0.95rem;
+    color: #991b1b;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.validation-errors-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.validation-error-item {
+    font-size: 0.9rem;
+    color: #991b1b;
+    font-weight: 500;
+    padding-left: 0.5rem;
+}
+
+/* Estilos para campos con error */
+.field-error {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1) !important;
+    background-color: rgba(254, 226, 226, 0.1) !important;
+}
+
+.field-error-message {
+    color: #dc2626;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.field-error-message::before {
+    content: "⚠";
+    font-size: 0.75rem;
+}
+
+/* Estilos para labels con error */
+.field-error-label {
+    color: #dc2626 !important;
+    font-weight: 600;
+}
+
 /* React Select personalizado */
 .react-select-container {
     margin-top: 8px;

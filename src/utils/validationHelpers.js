@@ -16,6 +16,10 @@ export const collectDonationErrors = ({ basePayload, formData, tipoDonacion, din
     errors.push('Selecciona el tipo de donación.');
   }
 
+  if (!basePayload.id_campana || Number.isNaN(basePayload.id_campana)) {
+    errors.push('Selecciona una campaña.');
+  }
+
   const tipoNormalized = (tipoDonacion || formData.tipo_donacion || '').toLowerCase();
 
   if (tipoNormalized === 'dinero') {
@@ -32,10 +36,9 @@ export const collectDonationErrors = ({ basePayload, formData, tipoDonacion, din
     if (!dineroData?.numero_cuenta) {
       errors.push('Número de cuenta: es requerido.');
     }
-    // Si el comprobante es obligatorio, descomentar:
-    // if (!dineroData?.comprobante_url) {
-    //   errors.push('Comprobante: sube una imagen de comprobante.');
-    // }
+    if (!dineroData?.comprobante_url) {
+      errors.push('Comprobante: sube una imagen de comprobante.');
+    }
   } else if (tipoNormalized === 'especie') {
     if (!especieData?.id_articulo) {
       errors.push('Artículo: selecciona un artículo.');
@@ -46,6 +49,9 @@ export const collectDonationErrors = ({ basePayload, formData, tipoDonacion, din
     const cantNumber = parseFloat(String(especieData?.cantidad ?? '').replace(',', '.'));
     if (Number.isNaN(cantNumber) || cantNumber <= 0) {
       errors.push('Cantidad: ingresa un valor numérico mayor a 0.');
+    }
+    if (!especieData?.id_unidad) {
+      errors.push('Unidad de medida: selecciona una unidad.');
     }
     if (!especieData?.estado_articulo) {
       errors.push('Estado del artículo: es requerido.');

@@ -16,6 +16,7 @@
     overflow: hidden;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     border: 1px solid #e2e8f0;
+    justify-content: center;
 }
 
 .login-image {

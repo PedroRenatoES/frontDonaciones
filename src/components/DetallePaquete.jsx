@@ -1,14 +1,30 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import axios from '../axios';
 import axiosPublic from '../axiosPublic';
 import ListaCajasPorPaquete from './ListaCajasPorPaquete';
+import '../styles/DetallePaquete.css';
 
 const DetallePaquete = ({ paquete, productos, volver }) => {
+  console.log('🔍 DetallePaquete renderizando:', { paquete, productos });
+  
   const [seleccionados, setSeleccionados] = useState([]);
   const [refreshCajas, setRefreshCajas] = useState(Date.now());
   const [cajas, setCajas] = useState([]); // Estado para cajas actuales
   const [creando, setCreando] = useState(false);
   const [enviando, setEnviando] = useState(false);
+  const [errorValidacion, setErrorValidacion] = useState('');
+
+  // Manejar tecla Escape para cerrar modal
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        volver();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [volver]);
 
   // Calculamos la cantidad asignada total por producto a partir de las cajas
   // Parsear la descripción de cada caja para restar correctamente por artículo
@@ -52,14 +68,10 @@ const DetallePaquete = ({ paquete, productos, volver }) => {
   };
 
   const cambiarCantidad = (nombre_articulo, valor) => {
-    let cantidad = Number(valor);
-    const disponible = cantidadDisponibleReal(nombre_articulo);
-    if (cantidad < 1) cantidad = 1;
-    if (cantidad > disponible) cantidad = disponible;
-
+    // Permitir cualquier entrada, incluyendo texto vacío
     setSeleccionados(prev =>
       prev.map(p =>
-        p.nombre_articulo === nombre_articulo ? { ...p, cantidad_asignada: cantidad } : p
+        p.nombre_articulo === nombre_articulo ? { ...p, cantidad_asignada: valor } : p
       )
     );
   };
@@ -68,24 +80,31 @@ const DetallePaquete = ({ paquete, productos, volver }) => {
     if (e?.preventDefault) e.preventDefault();
     if (creando) return;
 
+    // Limpiar errores previos
+    setErrorValidacion('');
     setCreando(true);
 
     if (seleccionados.length === 0) {
-      alert('Selecciona al menos un producto');
+      setErrorValidacion('Debes seleccionar al menos un producto para crear la caja');
       setCreando(false);
       return;
     }
 
     // Validar cantidades asignadas respecto a disponible real
     for (const p of seleccionados) {
+      const cantidad = Number(p.cantidad_asignada);
       const disponible = cantidadDisponibleReal(p.nombre_articulo);
-      if (p.cantidad_asignada < 1) {
-        alert('La cantidad asignada debe ser al menos 1 en cada producto seleccionado');
+      
+      // Validar que sea un número válido
+      if (isNaN(cantidad) || cantidad <= 0) {
+        setErrorValidacion(`La cantidad para ${p.nombre_articulo} debe ser un número mayor a 0`);
         setCreando(false);
         return;
       }
-      if (p.cantidad_asignada > disponible) {
-        alert(`La cantidad asignada para ${p.nombre_articulo} excede la cantidad disponible (${disponible})`);
+      
+      // Validar que no exceda lo disponible
+      if (cantidad > disponible) {
+        setErrorValidacion(`La cantidad asignada para ${p.nombre_articulo} excede la cantidad disponible (${disponible})`);
         setCreando(false);
         return;
       }
@@ -109,12 +128,11 @@ const DetallePaquete = ({ paquete, productos, volver }) => {
         cantidad_asignada: cantidadTotal
       });
 
-      alert(`Caja creada: ${res.data.id_caja}`);
       setRefreshCajas(Date.now());
       setSeleccionados([]);
     } catch (error) {
       console.error('Error creando caja:', error);
-      alert('Hubo un error al crear la caja');
+      setErrorValidacion('Hubo un error al crear la caja. Intenta nuevamente.');
     } finally {
       setCreando(false);
     }
@@ -124,12 +142,17 @@ const DetallePaquete = ({ paquete, productos, volver }) => {
     if (enviando) return;
 
     // Validar que para cada producto las cantidades asignadas coincidan con la cantidad total
+    const errores = [];
     for (const prod of productos) {
       const asignado = cantidadesAsignadas[prod.nombre_articulo] || 0;
       if (asignado !== prod.cantidad) {
-        alert(`No se puede marcar como enviado: El producto "${prod.nombre_articulo}" tiene ${asignado} asignados pero la cantidad total es ${prod.cantidad}`);
-        return;
+        errores.push(`El producto "${prod.nombre_articulo}" tiene ${asignado} asignados pero la cantidad total es ${prod.cantidad}`);
       }
+    }
+    
+    if (errores.length > 0) {
+      setErrorValidacion(errores.join('. '));
+      return;
     }
 
     setEnviando(true);
@@ -179,78 +202,137 @@ const DetallePaquete = ({ paquete, productos, volver }) => {
     }
   };
 
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      volver();
+    }
+  };
+
   return (
-    <div>
-      <h4>Crear caja para: {paquete.nombre_paquete}</h4>
+    <div className="detalle-paquete-wrapper" onClick={handleBackdropClick}>
+      <div className="detalle-paquete-card">
+        <button 
+          className="modal-close-btn" 
+          onClick={volver}
+          title="Cerrar modal"
+        ></button>
+        
+        <h4 className="detalle-paquete-title">Crear caja para: {paquete.nombre_paquete}</h4>
 
-      <table className="table table-bordered">
-        <thead>
-          <tr>
-            <th>Artículo</th>
-            <th>Unidad</th>
-            <th>Disponible</th>
-            <th>Asignar</th>
-            <th>Seleccionar</th>
-          </tr>
-        </thead>
-        <tbody>
-          {productos.map(prod => {
-            const seleccionado = seleccionados.find(p => p.nombre_articulo === prod.nombre_articulo);
-            const disponibleReal = cantidadDisponibleReal(prod.nombre_articulo);
+        {/* Indicador de Error de Validación */}
+        {errorValidacion && (
+          <div className="error-validacion">
+            <div className="error-icon">⚠</div>
+            <div className="error-mensaje">
+              {errorValidacion.includes('. ') ? (
+                <div className="error-lista">
+                  {errorValidacion.split('. ').map((error, index) => (
+                    <div key={index} className="error-item">
+                      • {error}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                errorValidacion
+              )}
+            </div>
+          </div>
+        )}
 
-            return (
-              <tr key={prod.nombre_articulo}>
-                <td>{prod.nombre_articulo}</td>
-                <td>{prod.unidad}</td>
-                <td>{disponibleReal}</td>
-                <td>
-                  <input
-                    type="number"
-                    min={1}
-                    max={disponibleReal}
-                    disabled={!seleccionado || disponibleReal === 0}
-                    value={seleccionado?.cantidad_asignada || ''}
-                    onChange={e => cambiarCantidad(prod.nombre_articulo, e.target.value)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="checkbox"
-                    checked={!!seleccionado}
-                    disabled={disponibleReal === 0}
-                    onChange={() => toggleSeleccion(prod.nombre_articulo)}
-                  />
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+        {/* Resumen de productos disponibles */}
+        <div className="productos-resumen">
+          <h5 className="productos-resumen-title">Productos Disponibles</h5>
+          <div className="productos-resumen-list">
+            {productos.map(prod => {
+              const disponibleReal = cantidadDisponibleReal(prod.nombre_articulo);
+              return (
+                <div key={prod.nombre_articulo} className="producto-resumen-item">
+                  {prod.nombre_articulo}: {disponibleReal} {prod.unidad}
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
-      <button
-        className="btn btn-primary"
-        onClick={crearCaja}
-        disabled={creando}
-      >
-        {creando ? 'Creando...' : 'Crear Caja'}
-      </button>
+        <table className="table table-moderna">
+          <thead>
+            <tr>
+              <th style={{color: 'black' , textAlign: 'center'}}>Artículo</th>
+              <th style={{color: 'black' , textAlign: 'center'}}>Unidad</th>
+              <th style={{color: 'black' , textAlign: 'center'}}>Disponible</th>
+              <th style={{color: 'black' , textAlign: 'center'}}>Asignar</th>
+              <th style={{color: 'black' , textAlign: 'center'}}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {productos.map(prod => {
+              const seleccionado = seleccionados.find(p => p.nombre_articulo === prod.nombre_articulo);
+              const disponibleReal = cantidadDisponibleReal(prod.nombre_articulo);
 
-      <button className="btn btn-secondary ms-2" onClick={volver}>Cancelar</button>
+              return (
+                <tr key={prod.nombre_articulo}>
+                  <td style={{textAlign: 'center'}}>{prod.nombre_articulo}</td>
+                  <td style={{textAlign: 'center'}}>{prod.unidad}</td>
+                  <td style={{textAlign: 'center'}}>{disponibleReal}</td>
+                  <td>
+                    <input
+                      type="text"
+                      className="input-cantidad"
+                      disabled={!seleccionado || disponibleReal === 0}
+                      value={seleccionado?.cantidad_asignada || ''}
+                      onChange={e => cambiarCantidad(prod.nombre_articulo, e.target.value)}
+                      placeholder="Cantidad"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="checkbox"
+                      className="checkbox-moderno"
+                      checked={!!seleccionado}
+                      disabled={disponibleReal === 0}
+                      onChange={() => toggleSeleccion(prod.nombre_articulo)}
+                    />
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
 
-      <ListaCajasPorPaquete
-        idPaquete={paquete.id_paquete}
-        refrescarTrigger={refreshCajas}
-        setCajas={setCajas}
-      />
+        <div className="botones-container">
+          <button
+            className="btn-moderno btn-crear"
+            onClick={crearCaja}
+            disabled={creando}
+          >
+            {creando ? 'Creando...' : 'Crear Caja'}
+          </button>
+        </div>
 
-      <hr />
-      <button
-        className="btn btn-success mt-3"
-        onClick={marcarComoEnviado}
-        disabled={enviando}
-      >
-        {enviando ? 'Enviando...' : 'Marcar como Enviado'}
-      </button>
+        <div className="lista-cajas-container">
+          <h5 className="lista-cajas-title">Cajas Creadas</h5>
+          <ListaCajasPorPaquete
+            idPaquete={paquete.id_paquete}
+            refrescarTrigger={refreshCajas}
+            setCajas={setCajas}
+          />
+          {cajas.length === 0 && (
+            <p className="mensaje-estado">No se han creado cajas aún.</p>
+          )}
+        </div>
+
+        <hr className="separador-moderno" />
+        
+        <div style={{ textAlign: 'center' }}>
+          <button
+            className="btn-moderno btn-enviar"
+            onClick={marcarComoEnviado}
+            disabled={enviando}
+          >
+            {enviando ? 'Enviando...' : 'Marcar como Enviado'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

@@ -30,6 +30,53 @@ function AddDonation() {
   const [donorSearchTerm, setDonorSearchTerm] = useState('');
   const [showCampaignDropdown, setShowCampaignDropdown] = useState(false);
   const [campaignSearchTerm, setCampaignSearchTerm] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  // Función para mapear errores generales a campos específicos
+  const mapErrorsToFields = (errors) => {
+    const fieldErrorMap = {};
+    
+    errors.forEach(error => {
+      if (error.includes('donante')) {
+        fieldErrorMap.donante = 'Selecciona un donante';
+      }
+      if (error.includes('tipo de donación')) {
+        fieldErrorMap.tipo_donacion = 'Selecciona el tipo de donación';
+      }
+      if (error.includes('campaña')) {
+        fieldErrorMap.id_campana = 'Selecciona una campaña';
+      }
+      if (error.includes('Artículo')) {
+        fieldErrorMap.id_articulo = 'Selecciona un artículo';
+      }
+      if (error.includes('Espacio')) {
+        fieldErrorMap.id_espacio = 'Selecciona un espacio/almacén';
+      }
+      if (error.includes('Cantidad')) {
+        fieldErrorMap.cantidad = 'Ingresa un valor numérico mayor a 0';
+      }
+      if (error.includes('Unidad de medida')) {
+        fieldErrorMap.id_unidad = 'Selecciona una unidad de medida';
+      }
+      if (error.includes('Estado del artículo')) {
+        fieldErrorMap.estado_articulo = 'Selecciona el estado del artículo';
+      }
+      if (error.includes('Monto')) {
+        fieldErrorMap.monto = 'Ingresa un monto válido';
+      }
+      if (error.includes('cuenta')) {
+        fieldErrorMap.nombre_cuenta = 'Selecciona una cuenta';
+      }
+      if (error.includes('Número de cuenta')) {
+        fieldErrorMap.numero_cuenta = 'Ingresa el número de cuenta';
+      }
+      if (error.includes('Comprobante')) {
+        fieldErrorMap.comprobante_url = 'Sube una imagen de comprobante';
+      }
+    });
+    
+    return fieldErrorMap;
+  };
   const [dineroData, setDineroData] = useState({
   monto: '',
   divisa: 'Bs',
@@ -43,7 +90,7 @@ const [especieData, setEspecieData] = useState({
   id_articulo: '',
   id_espacio: '',
   cantidad: '',
-  estado_articulo: 'Nuevo',
+  estado_articulo: '',
   destino_donacion: '',
 });
 
@@ -157,6 +204,14 @@ const handleCreateDonor = async () => {
 
   const handleBaseChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    
+    // Limpiar error específico del campo cuando el usuario interactúa
+    if (fieldErrors[e.target.name]) {
+      setFieldErrors(prev => ({
+        ...prev,
+        [e.target.name]: ''
+      }));
+    }
 
     if (e.target.name === 'tipo_donacion') {
       setTipoDonacion(e.target.value);
@@ -165,6 +220,9 @@ const handleCreateDonor = async () => {
 
 const handleSubmit = async () => {
   try {
+    // Limpiar errores previos
+    setFieldErrors({});
+    
     // 1. Enviar la donación base
     const basePayload = {
       ...formData,
@@ -177,13 +235,12 @@ const handleSubmit = async () => {
 
     // Validaciones previas unificadas
     const errors = collectDonationErrors({ basePayload, formData, tipoDonacion, dineroData, especieData });
+    console.log('🔍 Errores encontrados:', errors);
+    
     if (errors.length > 0) {
-      await showAlert({
-        title: 'Campos inválidos o incompletos',
-        message: formatErrorsForAlert(errors),
-        type: 'alert',
-        confirmText: 'Entendido'
-      });
+      const fieldErrorMap = mapErrorsToFields(errors);
+      console.log('🔍 Mapeo de errores a campos:', fieldErrorMap);
+      setFieldErrors(fieldErrorMap);
       return;
     }
 
@@ -227,7 +284,7 @@ const handleSubmit = async () => {
       id_articulo: '',
       id_espacio: '',
       cantidad: '',
-      estado_articulo: 'Nuevo',
+      estado_articulo: '',
       destino_donacion: '',
     });
   } catch (error) {
@@ -258,16 +315,6 @@ const [campañas, setCampañas] = useState([]);
         onClose={() => setDonationNotice({ success: '', error: '' })}
       />
       <h1>Agregar Nueva Donación</h1>
-      <ConfirmModal
-        show={modalState.show}
-        title={modalState.title}
-        message={modalState.message}
-        type={modalState.type}
-        confirmText={modalState.confirmText}
-        cancelText={modalState.cancelText}
-        onConfirm={modalState.onConfirm}
-        onCancel={modalState.onCancel}
-      />
       
       {/* Formulario Principal */}
       <div className="donation-form">
@@ -280,11 +327,19 @@ const [campañas, setCampañas] = useState([]);
           <div className="form-group">
             <label>Tipo de Donación</label>
             <div className="form-input-container">
-              <select name="tipo_donacion" onChange={handleBaseChange} value={formData.tipo_donacion}>
+              <select 
+                name="tipo_donacion" 
+                onChange={handleBaseChange} 
+                value={formData.tipo_donacion}
+                className={fieldErrors.tipo_donacion ? 'field-error' : ''}
+              >
                 <option value="">Selecciona el tipo</option>
                 <option value="Dinero">Dinero</option>
                 <option value="especie">Especie</option>
               </select>
+              {fieldErrors.tipo_donacion && (
+                <div className="field-error-message">{fieldErrors.tipo_donacion}</div>
+              )}
             </div>
           </div>
 
@@ -294,7 +349,7 @@ const [campañas, setCampañas] = useState([]);
               <div className="custom-dropdown-container">
                 <input style={{height: '43px'} }
                   type="text"
-                  className="custom-dropdown-input"
+                  className={`custom-dropdown-input ${fieldErrors.donante ? 'field-error' : ''}`}
                   placeholder="Buscar donante por nombre"
                   value={formData.nombre_donante || ''}
                   onChange={(e) => {
@@ -305,6 +360,14 @@ const [campañas, setCampañas] = useState([]);
                       id_donante: searchTerm ? formData.id_donante : ''
                     }));
                     setDonorSearchTerm(searchTerm);
+                    
+                    // Limpiar error del donante cuando el usuario interactúa
+                    if (fieldErrors.donante) {
+                      setFieldErrors(prev => ({
+                        ...prev,
+                        donante: ''
+                      }));
+                    }
                   }}
                   onFocus={() => setShowDonorDropdown(true)}
                   onBlur={() => setTimeout(() => setShowDonorDropdown(false), 200)}
@@ -356,6 +419,9 @@ const [campañas, setCampañas] = useState([]);
               >
                 + Agregar Donante
               </button>
+              {fieldErrors.donante && (
+                <div className="field-error-message">{fieldErrors.donante}</div>
+              )}
             </div>
           </div>
 
@@ -365,7 +431,7 @@ const [campañas, setCampañas] = useState([]);
               <div className="custom-dropdown-container">
                 <input style={{height: '43px'} }
                   type="text"
-                  className="custom-dropdown-input"
+                  className={`custom-dropdown-input ${fieldErrors.id_campana ? 'field-error' : ''}`}
                   placeholder="Buscar campaña por nombre"
                   value={formData.nombre_campana || ''}
                   onChange={(e) => {
@@ -376,6 +442,14 @@ const [campañas, setCampañas] = useState([]);
                       id_campana: searchTerm ? formData.id_campana : ''
                     }));
                     setCampaignSearchTerm(searchTerm);
+                    
+                    // Limpiar error de la campaña cuando el usuario interactúa
+                    if (fieldErrors.id_campana) {
+                      setFieldErrors(prev => ({
+                        ...prev,
+                        id_campana: ''
+                      }));
+                    }
                   }}
                   onFocus={() => setShowCampaignDropdown(true)}
                   onBlur={() => setTimeout(() => setShowCampaignDropdown(false), 200)}
@@ -415,6 +489,9 @@ const [campañas, setCampañas] = useState([]);
               >
                 + Crear Campaña
               </button>
+              {fieldErrors.id_campana && (
+                <div className="field-error-message">{fieldErrors.id_campana}</div>
+              )}
             </div>
           </div>
 
@@ -460,6 +537,8 @@ const [campañas, setCampañas] = useState([]);
               setData={setDineroData}
               nombresCuenta={nombresCuenta}
               numerosCuenta={numerosCuenta}
+              fieldErrors={fieldErrors}
+              setFieldErrors={setFieldErrors}
             />
           ) : (
             <DonacionEspecieForm
@@ -468,6 +547,8 @@ const [campañas, setCampañas] = useState([]);
               articulos={articulos}
               espacios={espacios}
               almacenes={almacenes}
+              fieldErrors={fieldErrors}
+              setFieldErrors={setFieldErrors}
             />
           )}
 

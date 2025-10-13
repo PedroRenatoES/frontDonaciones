@@ -209,8 +209,8 @@ function Login({ onLogin }) {
   };
 
   return (
-    <div className="login-page">
-      <div className="login-card">
+    <div className="login-page" >
+      <div className="login-card" style={{ marginRight: '220px'}}>
         <div className="login-image">
           <img src="/logo.png" alt="Login visual" />
         </div>

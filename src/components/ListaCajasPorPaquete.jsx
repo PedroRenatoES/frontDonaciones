@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import '../styles/DetallePaquete.css';
 
 const ListaCajasPorPaquete = ({ idPaquete, refrescarTrigger, setCajas }) => {
   const [cajasLocal, setCajasLocal] = useState([]);
@@ -20,31 +21,45 @@ const ListaCajasPorPaquete = ({ idPaquete, refrescarTrigger, setCajas }) => {
     fetchCajas();
   }, [idPaquete, refrescarTrigger, setCajas]);
 
-  if (!cajasLocal.length) return <p>No se han creado cajas aún.</p>;
+  // if (!cajasLocal.length) {
+  //   return (
+  //     <div className="no-cajas-mensaje">
+  //       📦 No se han creado cajas aún
+  //     </div>
+  //   );
+  // }
 
   return (
-    <div className="mt-4">
-      <h5>Cajas creadas</h5>
-      <ul className="list-group">
-        {cajasLocal.map((caja) => (
-          <li key={caja.id_caja} className="list-group-item">
-            <strong>Código:</strong> {caja.codigo_caja} <br />
-            <strong>Artículos:</strong> {
-              typeof caja.descripcion === 'string' && caja.descripcion.length > 0
-                ? caja.descripcion.split(',').map((par, idx) => {
-                    const [nombre, cantidad] = par.split(':');
-                    return (
-                      <span key={nombre + idx}>
-                        {nombre}: {cantidad}{idx < caja.descripcion.split(',').length - 1 ? ', ' : ''}
-                      </span>
-                    );
-                  })
-                : 'Sin detalle'
-            }<br />
-            <strong>Cantidad total:</strong> {caja.cantidad_asignada}
-          </li>
-        ))}
-      </ul>
+    <div className="cajas-list">
+      {cajasLocal.map((caja) => (
+        <div key={caja.id_caja} className="caja-item">
+          <div className="caja-header">
+            <div className="caja-codigo">{caja.codigo_caja}</div>
+            <div className="caja-cantidad-total">
+              {caja.cantidad_asignada} items
+            </div>
+          </div>
+          
+          <div className="caja-detalles">
+            <div className="caja-detalle-item">
+              <span className="caja-detalle-label">Artículos:</span>
+              <div className="caja-articulos">
+                {typeof caja.descripcion === 'string' && caja.descripcion.length > 0
+                  ? caja.descripcion.split(',').map((par, idx) => {
+                      const [nombre, cantidad] = par.split(':');
+                      return (
+                        <span key={nombre + idx} className="caja-articulo-item">
+                          {nombre}: {cantidad}
+                        </span>
+                      );
+                    })
+                  : <span className="caja-articulo-item">Sin detalle</span>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };

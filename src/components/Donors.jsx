@@ -161,7 +161,6 @@ const fetchDonors = async () => {
             <th>Nombre</th>
             <th>Teléfono</th>
             <th>Email</th>
-            <th>Usuario</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -171,7 +170,6 @@ const fetchDonors = async () => {
             <td>{`${d.nombres} ${d.apellido_paterno} ${d.apellido_materno}`}</td>
             <td>{d.telefono}</td>
             <td>{d.correo}</td>
-            <td>{d.usuario}</td>
             <td>
               <button className="btn-edit" onClick={() => openEditModal(d)}>Editar</button>
               <button className="btn-delete" onClick={() => handleDelete(d.id_donante)}>Eliminar</button>
