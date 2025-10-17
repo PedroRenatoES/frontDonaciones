@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import Select from 'react-select';
 import axios from '../axios';
 
@@ -9,6 +10,10 @@ function DonacionEspecieForm({ data, setData, articulos, almacenes, fieldErrors 
   const [unidades, setUnidades] = useState([]);
   const [modalArticuloAbierto, setModalArticuloAbierto] = useState(false); // Estado para el modal
   const [categorias, setCategorias] = useState([]); // Estado para las categorías
+  const [catalogo, setCatalogo] = useState([]); // Lista del catálogo para el modal
+  const [modalError, setModalError] = useState('');
+  const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
   const [estantes, setEstantes] = useState([]); // Estado para los estantes
   const [nuevoArticulo, setNuevoArticulo] = useState({
     nombre_articulo: '',
@@ -116,14 +121,66 @@ function DonacionEspecieForm({ data, setData, articulos, almacenes, fieldErrors 
   const handleCrearArticulo = async () => {
     try {
       await axios.post('/catalogo', nuevoArticulo);
-      alert('Artículo creado con éxito');
-      setModalArticuloAbierto(false);
       setNuevoArticulo({ nombre_articulo: '', descripcion: '', id_categoria: '' });
+      // refrescar catálogo para mostrar el nuevo artículo inmediatamente
+      await fetchCatalogo();
+      showToast('Artículo creado con éxito', 'success');
     } catch (error) {
       console.error('Error al crear el artículo:', error);
-      alert('No se pudo crear el artículo');
+      showToast('No se pudo crear el artículo', 'error');
     }
   };
+
+  // Fetch catálogo helper so we can call it from multiple places
+  const fetchCatalogo = async () => {
+    try {
+      const res = await axios.get('/catalogo');
+      setCatalogo(res.data || []);
+    } catch (err) {
+      console.error('Error cargando catálogo:', err);
+      setCatalogo([]);
+    }
+  };
+
+  // Cargar catálogo cuando se abre el modal
+  useEffect(() => {
+    if (modalArticuloAbierto) fetchCatalogo();
+  }, [modalArticuloAbierto]);
+
+  const handleEliminarArticulo = async (id) => {
+    setModalError('');
+    try {
+      await axios.delete(`/catalogo/${id}`);
+      // refrescar lista
+      await fetchCatalogo();
+      showToast('Artículo eliminado', 'success');
+    } catch (err) {
+      console.error('Error eliminando artículo:', err);
+      // Mostrar mensaje específico cuando el servidor indique que existen donaciones
+      const msg = err?.response?.data?.message || '';
+      const userMsg = (msg.toLowerCase().includes('donacion') || msg.toLowerCase().includes('donaciones') || err?.response?.status === 409)
+        ? 'No se pudo eliminar ya que este articulo contiene donaciones registradas.'
+        : 'No se pudo eliminar el artículo.';
+      setModalError(userMsg);
+      showToast(userMsg, 'error');
+    } finally {
+      setPendingDeleteId(null);
+    }
+  };
+
+  const confirmDelete = (id) => {
+    setPendingDeleteId(id);
+    // clear any modal error when user opens confirmation
+    setModalError('');
+  };
+
+  const cancelDelete = () => setPendingDeleteId(null);
+
+  // Simple toast helper
+  function showToast(message, type = 'success') {
+    setToast({ visible: true, message, type });
+    setTimeout(() => setToast({ visible: false, message: '', type }), 3500);
+  }
 
   const opcionesAlmacenes = almacenes.map(alm => ({
     value: alm.id_almacen,
@@ -424,58 +481,115 @@ function DonacionEspecieForm({ data, setData, articulos, almacenes, fieldErrors 
       </div>
 
       {modalArticuloAbierto && (
-        <div className="modal-backdrop">
-          <div className="modal-content" style={{ padding: '1rem', borderRadius: '5px', backgroundColor: 'white', maxWidth: '600px', margin: '2rem auto' }}>
-            <h4>Crear Nuevo Artículo</h4>
-            <div className="form-group">
-              <label>Nombre del Artículo</label>
-              <input
-                type="text"
-                value={nuevoArticulo.nombre_articulo}
-                onChange={(e) => setNuevoArticulo({ ...nuevoArticulo, nombre_articulo: e.target.value })}
-                style={{ marginBottom: '0.5rem', padding: '0.5rem', borderRadius: '5px', border: '1px solid #ccc', width: '100%' }}
-              />
-            </div>
-            <div className="form-group">
-              <label>Descripción</label>
-              <textarea
-                value={nuevoArticulo.descripcion}
-                onChange={(e) => setNuevoArticulo({ ...nuevoArticulo, descripcion: e.target.value })}
-                style={{ marginBottom: '0.5rem', padding: '0.5rem', borderRadius: '5px', border: '1px solid #ccc', width: '100%' }}
-              />
-            </div>
-            <div className="form-group">
-              <label>Categoría</label>
-              <select
-                value={nuevoArticulo.id_categoria}
-                onChange={(e) => setNuevoArticulo({ ...nuevoArticulo, id_categoria: e.target.value })}
-                style={{ marginBottom: '0.5rem', padding: '0.5rem', borderRadius: '5px', border: '1px solid #ccc', width: '100%' }}
-              >
-                <option value="">Seleccione una categoría</option>
-                {categorias.map((categoria) => (
-                  <option key={categoria.id_categoria} value={categoria.id_categoria}>
-                    {categoria.nombre_categoria}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <button
-                onClick={handleCrearArticulo}
-                style={{ marginRight: '0.5rem', padding: '0.5rem 1rem', borderRadius: '5px', backgroundColor: '#28a745', color: 'white', border: 'none' }}
-              >
-                Crear
-              </button>
-              <button
-                onClick={() => setModalArticuloAbierto(false)}
-                style={{ padding: '0.5rem 1rem', borderRadius: '5px', backgroundColor: '#ccc', color: 'black', border: 'none' }}
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
+        <div>
+          {/* Backdrop */}
+          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.45)', zIndex: 1050 }} onClick={() => setModalArticuloAbierto(false)} />
+
+          {/* Modal centered */}
+              {createPortal(
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1060 }}>
+                  <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.45)' }} onClick={() => setModalArticuloAbierto(false)} />
+
+                  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 'min(1100px, 96%)', maxHeight: '85vh', overflow: 'auto', padding: '1rem' }} role="dialog" aria-modal="true">
+                    <div style={{ background: '#fff', borderRadius: '8px', boxShadow: '0 12px 32px rgba(0,0,0,0.25)', display: 'flex', gap: '1rem', padding: '1rem', maxHeight: '80vh', overflow: 'hidden' }}>
+                      {/* Left: Crear artículo (form) */}
+                      <div style={{ flex: '1 1 420px', minWidth: '300px', overflowY: 'auto' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <h4 style={{ margin: 0 }}>Crear Nuevo Artículo</h4>
+                          <button onClick={() => setModalArticuloAbierto(false)} style={{ background: 'transparent', border: 'none', fontSize: '1.25rem', cursor: 'pointer' }}>×</button>
+                        </div>
+
+                        <div style={{ marginTop: '0.75rem' }}>
+                          <div className="form-group">
+                            <label>Nombre del Artículo</label>
+                            <input
+                              type="text"
+                              value={nuevoArticulo.nombre_articulo}
+                              onChange={(e) => setNuevoArticulo({ ...nuevoArticulo, nombre_articulo: e.target.value })}
+                              className="form-control"
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label>Descripción</label>
+                            <textarea
+                              value={nuevoArticulo.descripcion}
+                              onChange={(e) => setNuevoArticulo({ ...nuevoArticulo, descripcion: e.target.value })}
+                              className="form-control"
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label>Categoría</label>
+                            <select
+                              value={nuevoArticulo.id_categoria}
+                              onChange={(e) => setNuevoArticulo({ ...nuevoArticulo, id_categoria: e.target.value })}
+                              className="form-control"
+                            >
+                              <option value="">Seleccione una categoría</option>
+                              {categorias.map((categoria) => (
+                                <option key={categoria.id_categoria} value={categoria.id_categoria}>
+                                  {categoria.nombre_categoria}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                            <button onClick={handleCrearArticulo} className="btn btn-success">Crear</button>
+                            <button onClick={() => setModalArticuloAbierto(false)} className="btn btn-secondary">Cancelar</button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right: Lista catálogo */}
+                      <div style={{ flex: '1 1 420px', minWidth: '300px', maxHeight: 'calc(80vh - 40px)', overflowY: 'auto' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <h4 style={{ margin: 0 }}>Catálogo</h4>
+                        </div>
+
+                        {modalError && <div style={{ marginTop: '0.5rem' }} className="alert alert-danger">{modalError}</div>}
+
+                        <div style={{ marginTop: '0.5rem', display: 'grid', gap: '0.5rem' }}>
+                          {catalogo.length === 0 ? (
+                            <div className="text-muted">No hay artículos en el catálogo.</div>
+                          ) : (
+                            catalogo.map(item => (
+                              <div key={item.id_articulo} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem', border: '1px solid #e9ecef', borderRadius: '6px' }}>
+                                <div>
+                                  <div style={{ fontWeight: 600 }}>{item.nombre_articulo}</div>
+                                  <div className="text-muted" style={{ fontSize: '0.9rem' }}>{item.descripcion}</div>
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                  {pendingDeleteId === item.id_articulo ? (
+                                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                                      <span className="text-muted" style={{ flex: '1 1 160px', minWidth: '120px', marginRight: '0.5rem', lineHeight: 1.2 }}>¿Deseas borrar este producto?</span>
+                                      <div style={{ display: 'flex', gap: '0.5rem', marginLeft: 'auto' }}>
+                                        <button className="btn btn-sm btn-danger" onClick={() => handleEliminarArticulo(item.id_articulo)}>Sí, eliminar</button>
+                                        <button className="btn btn-sm btn-secondary" onClick={cancelDelete}>Cancelar</button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <button className="btn btn-sm btn-danger" onClick={() => confirmDelete(item.id_articulo)}>Eliminar</button>
+                                  )}
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>, document.body)
+              }
         </div>
       )}
+
+      {toast.visible && createPortal(
+        <div style={{ position: 'fixed', right: '1rem', bottom: '1rem', zIndex: 2000 }}>
+          <div style={{ minWidth: '220px', padding: '0.75rem 1rem', borderRadius: '8px', color: '#fff', backgroundColor: toast.type === 'success' ? '#28a745' : '#dc3545', boxShadow: '0 6px 18px rgba(0,0,0,0.2)' }}>
+            {toast.message}
+          </div>
+        </div>, document.body)}
 
     </div>
   );

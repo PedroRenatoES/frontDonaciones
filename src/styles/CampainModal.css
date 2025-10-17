@@ -177,3 +177,189 @@
         min-width: 100px;
     }
 }
+
+/* Styles for the EditCampanaModal custom markup (.campana-modal-backdrop / .campana-modal-content)
+   These mirror the behavior of .modal-overlay / .modal-form so the edit modal appears centered
+   and above the rest of the page without changing the component markup. */
+.campana-modal-backdrop {
+    /* Match .modal-overlay */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    position: fixed;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    backdrop-filter: blur(4px);
+}
+
+.campana-modal-content {
+    /* Match .modal-form visually so edit modal looks like create modal */
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+    padding: 2rem;
+    max-width: 560px;
+    width: 100%;
+    border-radius: 20px;
+    outline: none;
+    z-index: 1001;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.campana-modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    color: #374151;
+    font-size: 1.75rem;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: -0.025em;
+}
+
+/* Buttons inside edit modal: make them visually consistent with .btn/.btn-primary */
+.campana-create-button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    min-width: 120px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.campana-create-button:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.campana-cancel-button {
+    padding: 0.75rem 1.25rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: #e5e7eb;
+    color: #374151;
+    border: none;
+}
+
+.campana-modal-backdrop .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+/* Make form fields inside edit modal look like the create modal (.form-control/.form-group) */
+.campana-modal-content form {
+    display: block;
+}
+
+.campana-modal-content label {
+    display: block; /* force label above input */
+    margin-bottom: 0.5rem;
+    color: #374151;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+/* Ensure inputs/textarea placed inside a label behave like block form controls */
+.campana-modal-content label > input,
+.campana-modal-content label > textarea,
+.campana-modal-content label > input[type="date"],
+.campana-modal-content label > input[type="file"],
+.campana-modal-content label > input[type="number"] {
+    display: block;
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 0.75rem 1rem;
+    border: 2px solid rgba(226, 232, 240, 0.8);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.95);
+    box-sizing: border-box;
+}
+
+.campana-modal-content input[type="text"],
+.campana-modal-content input[type="date"],
+.campana-modal-content input[type="file"],
+.campana-modal-content textarea,
+.campana-modal-content input[type="number"] {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid rgba(226, 232, 240, 0.8);
+    border-radius: 12px;
+    font-size: 1rem;
+    background: rgba(255, 255, 255, 0.95);
+    color: #374151;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+.campana-modal-content textarea { min-height: 96px; resize: vertical; }
+
+.campana-modal-content input[type="file"] { padding: 0.5rem 0.25rem; }
+
+.campana-modal-content input:focus,
+.campana-modal-content textarea:focus {
+    border-color: #3b82f6;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08);
+    transform: translateY(-1px);
+    background: rgba(255,255,255,1);
+}
+
+.campana-modal-content .date-help,
+.campana-modal-content .file-help,
+.campana-modal-content .error-message,
+.campana-modal-content .error-msg {
+    display: block;
+    margin-top: 0.5rem;
+    color: #6b7280;
+    font-size: 0.85rem;
+}
+
+.campana-modal-content .current-image p { margin: 0 0 6px; }
+
+/* Buttons layout: ensure they sit below the form and match create modal spacing */
+.campana-create-button { margin-top: 0.5rem; margin-right: 0.75rem; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
+.campana-cancel-button { margin-top: 0.5rem; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
+
+/* Small responsive tweak to keep larger feel on mobile */
+@media (max-width: 480px) {
+    .campana-modal-content { padding: 1rem; }
+    .campana-modal-content input[type="text"],
+    .campana-modal-content input[type="date"],
+    .campana-modal-content textarea { padding: 0.6rem 0.75rem; }
+}
+
+/* Delete button + confirmation */
+.campana-delete-button {
+    padding: 0.65rem 1rem;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: #ef4444;
+    color: white;
+    border: none;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.18);
+}
+
+.campana-delete-button { margin-top: 0.5rem; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
+
+.campana-delete-button:disabled { opacity: 0.65; cursor: not-allowed; }
+
+.delete-confirmation { display: flex; gap: 0.5rem; align-items: center; }

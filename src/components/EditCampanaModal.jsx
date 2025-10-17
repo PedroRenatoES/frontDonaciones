@@ -15,6 +15,7 @@ function EditCampanaModal({ show, onClose, campana, onUpdated }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+  const [pendingDelete, setPendingDelete] = useState(false);
 
   const soloLetras = /^[a-zA-ZÁÉÍÓÚÑáéíóúñ\s]*$/;
 
@@ -139,6 +140,39 @@ function EditCampanaModal({ show, onClose, campana, onUpdated }) {
     }
   };
 
+  const handleDelete = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      if (!campana || !campana.id_campana) {
+        const msg = 'ID de campaña inválido. No se puede realizar la eliminación.';
+        console.error(msg, campana);
+        setError(msg);
+        setLoading(false);
+        setPendingDelete(false);
+        return;
+      }
+      console.log('Intentando eliminar campaña id=', campana.id_campana);
+      await axios.delete(`/campanas/${campana.id_campana}`);
+      if (onUpdated) onUpdated();
+      onClose();
+    } catch (err) {
+      console.error('Error eliminando campaña:', err);
+      if (err.response) {
+        console.error('Delete response data:', err.response.data);
+        console.error('Delete response status:', err.response.status);
+      }
+      const msg = err?.response?.data?.message || '';
+      const userMsg = (msg.toLowerCase().includes('donacion') || msg.toLowerCase().includes('donaciones') || err?.response?.status === 409)
+        ? 'No se pudo eliminar ya que esta campaña contiene donaciones registradas.'
+        : 'No se pudo eliminar la campaña.';
+      setError(userMsg);
+    } finally {
+      setLoading(false);
+      setPendingDelete(false);
+    }
+  };
+
   const handleBackdropClick = (e) => {
     if (e.target.className === 'campana-modal-backdrop') {
       onClose();
@@ -242,12 +276,33 @@ function EditCampanaModal({ show, onClose, campana, onUpdated }) {
 
           {error && <p className="error-msg">{error}</p>}
 
-          <button className="campana-create-button" type="submit" disabled={loading}>
-            {loading ? 'Actualizando...' : 'Actualizar Campaña'}
-          </button>
-          <button className="campana-cancel-button" type="button" onClick={onClose} disabled={loading}>
-            Cancelar
-          </button>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+            <button className="campana-create-button" type="submit" disabled={loading}>
+              {loading ? 'Actualizando...' : 'Actualizar Campaña'}
+            </button>
+
+            <button className="campana-cancel-button" type="button" onClick={onClose} disabled={loading}>
+              Cancelar
+            </button>
+
+            {/* Delete flow */}
+            {!pendingDelete ? (
+              <button
+                className="campana-delete-button"
+                type="button"
+                onClick={() => { setPendingDelete(true); setError(''); }}
+                disabled={loading}
+              >
+                Eliminar campaña
+              </button>
+            ) : (
+              <div className="delete-confirmation">
+                <span style={{ marginRight: '0.5rem', color: '#374151' }}>¿Eliminar campaña?</span>
+                <button className="campana-delete-button" type="button" onClick={handleDelete} disabled={loading}>Sí, eliminar</button>
+                <button className="campana-cancel-button" type="button" onClick={() => setPendingDelete(false)} disabled={loading}>Cancelar</button>
+              </div>
+            )}
+          </div>
         </form>
       </div>
     </div>
